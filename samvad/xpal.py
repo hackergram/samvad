@@ -7,8 +7,7 @@ import mongoengine
 import xetrapal
 from samvad import documents, utils
 
-samvadxpal = xetrapal.Xetrapal(
-    configfile="/opt/samvad-appdata/samvadxpal.conf")
+samvadxpal = xetrapal.Xetrapal(configfile="/opt/samvad-appdata/samvadxpal.conf")
 
 # Setting up mongoengine connections
 samvadxpal.logger.info("Setting up MongoEngine")
