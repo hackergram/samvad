@@ -20,7 +20,11 @@ app.config.update(
 )
 CORS(app)
 me = MongoEngine(app)
-app.logger = xpal.sakhacabsxpal.logger
+app.logger = xpal.samvadxpal.logger
 
 api = Api(app)
 parser = reqparse.RequestParser()
+
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0")
