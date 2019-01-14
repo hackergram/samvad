@@ -37,8 +37,7 @@ class CustomQuerySet(QuerySet):
 
 class User(PPrintMixin, DynamicDocument):
     user_id = fields.StringField(unique=True, required=True)
-    mobile_num = fields.StringField(unique=True, required=True)
-    tgid = fields.IntField()
+    mobile_num = fields.ListField(required=True)
 
     def __repr__(self):
         return "Driver (%r)" % (self.driver_id)
