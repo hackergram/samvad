@@ -27,7 +27,17 @@ class PPrintMixin(object):
                     name, value.strftime("%Y-%m-%d %H:%M:%S")))
             else:
                 attrs.append('\n    {} = {!r},'.format(name, value))
-        return '<{}: {}\n>'.format(type(self).__name__, ''.join(attrs))
+        if self._dynamic_fields:
+            for name in self._dynamic_fields.keys():
+                value = getattr(self, name)
+                if isinstance(value, (Document, DynamicDocument)):
+                    attrs.append('\n    {} = {!s},'.format(name, value))
+                elif isinstance(value, (datetime.datetime)):
+                    attrs.append('\n    {} = {},'.format(
+                        name, value.strftime("%Y-%m-%d %H:%M:%S")))
+                else:
+                    attrs.append('\n    {} = {!r},'.format(name, value))
+        return '\n{}: {}\n'.format(type(self).__name__, ''.join(attrs))
 
 
 class CustomQuerySet(QuerySet):
@@ -35,10 +45,23 @@ class CustomQuerySet(QuerySet):
         return "[%s]" % (",".join([doc.to_json() for doc in self]))
 
 
-class User(PPrintMixin, DynamicDocument):
-    user_id = fields.StringField(unique=True, required=True)
-    mobile_num = fields.StringField(unique=True, required=True)
-    tgid = fields.IntField()
+class Vyakti(PPrintMixin, DynamicDocument):
+    vyakti_id = fields.StringField(unique=True, required=True)
+    created_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+    updated_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+    lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+    lastinteracted_timestamp = fields.DateTimeField()
+    naam = fields.ListField()
 
-    def __repr__(self):
-        return "Driver (%r)" % (self.driver_id)
+    def __str__(self):
+        return "Vyakti (%r)" % (self.vyakti_id)
+
+
+class AbhiVyakti(PPrintMixin, DynamicDocument):
+    vyakti = fields.ReferenceField(Vyakti)
+    created_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+    updated_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+    lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+    lastinteracted_timestamp = fields.DateTimeField()
+    naam = fields.ListField()
+    flavor = fields.StringField(default="abhivyakti")
