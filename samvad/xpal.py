@@ -69,7 +69,7 @@ def create_vyakti(vyaktidict, logger=baselogger):
 def sighted_vyakti(vyakti, logger=baselogger):
     vyakti.lastseen_timestamp = datetime.datetime.utcnow()
     vyakti.save()
-    logger.info("{} sighted at {}".format(vyakti, vyakti.lastseen_timestamp.strftime("%Y-%m-%d %H:%M:%S")))
+    logger.info("{} sighted at {}".format(vyakti, utils.get_local_ts(vyakti.lastseen_timestamp).strftime("%Y-%m-%d %H:%M:%S")))
 
 
 def create_abhivyakti(abhivyaktidict, logger=baselogger):
