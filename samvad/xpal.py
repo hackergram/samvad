@@ -3,13 +3,14 @@ Created on Sat Jan  12 21:52:07 2019
 
 @author: arjunvenkatraman
 """
-
+import os
 import mongoengine
-import xetrapal
+from xetrapal import Xetrapal, whatsappkarmas, karma
 from samvad import documents, utils
 import datetime
+from bs4 import BeautifulSoup
 
-samvadxpal = xetrapal.Xetrapal(configfile="/opt/samvad-appdata/samvadxpal.conf")
+samvadxpal = Xetrapal(configfile="/opt/samvad-appdata/samvadxpal.conf")
 baselogger = samvadxpal.logger
 # Setting up mongoengine connections
 samvadxpal.logger.info("Setting up MongoEngine")
@@ -101,7 +102,7 @@ def fb_get_profile_data(fbbrowser, url, logger=baselogger):
     profiledata = {}
     profilepic = {}
     fbbrowser.get(url)
-    xetrapal.karma.wait()
+    karma.wait()
     profile = fbbrowser.current_url
     if profile == "http://www.facebook.com/profile.php":
         plink = fbbrowser.find_element_by_xpath("//a[@title='Profile']")
@@ -109,7 +110,7 @@ def fb_get_profile_data(fbbrowser, url, logger=baselogger):
     profiledata['url'] = profile
     profiledata['fbdisplayname'] = fb_get_cur_page_displayname(fbbrowser)
     fbbrowser.find_element_by_class_name("profilePicThumb").click()
-    xetrapal.karma.wait()
+    karma.wait()
     try:
         profilepic['alttext'] = fbbrowser.find_element_by_class_name(
             "spotlight").get_property("alt")
@@ -124,7 +125,7 @@ def fb_get_profile_data(fbbrowser, url, logger=baselogger):
             "profilePic").get_property("src")
         profilepic['profileguard'] = True
     try:
-        localfile = xetrapal.karma.download_file(
+        localfile = karma.download_file(
             profilepic['src'], prefix=profiledata['fbdisplayname'].replace(" ", ""), suffix=".jpg")
         profilepic['localfile'] = localfile
     except Exception as e:
@@ -138,7 +139,7 @@ def fb_get_profile_data(fbbrowser, url, logger=baselogger):
 def fb_get_profile_tab_data(fbbrowser, profileurl):
     tabdata = {"friends": {}, "photos": {}, "about": {}}
     fbbrowser.get(profileurl)
-    xetrapal.karma.wait()
+    karma.wait()
     phototab = fbbrowser.find_element_by_xpath(
         "//a[@data-tab-key='photos']").get_property("href")
     friendtab = fbbrowser.find_element_by_xpath(
@@ -164,3 +165,55 @@ def fb_like_page_toggle(fbbrowser, pageurl):
     fbbrowser.get(pageurl)
     likebutton = fbbrowser.find_element_by_xpath("//button[@data-testid='page_profile_like_button_test_id']")
     likebutton.click()
+
+
+def wa_get_conv_messages(wabrowser, text):
+    lines = []
+    whatsappkarmas.select_conv(wabrowser, text)
+    pane2 = wabrowser.find_element_by_class_name("_2nmDZ")
+    karma.wait()
+    pane2 = wabrowser.find_element_by_class_name("_2nmDZ")
+
+    while True:
+        numlines = len(lines)
+        wabrowser.execute_script("arguments[0].scrollTo(0,0)", pane2)
+        lines = wabrowser.find_elements_by_class_name("vW7d1")
+        karma.wait(waittime="long")
+        newnumlines = len(lines)
+        if newnumlines == numlines:
+            break
+    return lines
+
+
+def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
+    msgdict = {}
+    linebs = BeautifulSoup(line.get_property("innerHTML"))
+    message = linebs.find_all("div", {"class": "message-in"})
+    print message
+    if len(message):
+        msg = linebs.find("div", {"class": "copyable-text"})
+        if msg:
+            msgts = msg.get("data-pre-plain-text").split("] ")[0].replace("[", "").replace("]", "")
+            msgsender = msg.get("data-pre-plain-text").split("] ")[1]
+            msgdict["created_timestamp"] = datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y")
+            msgdict['sender'] = msgsender
+            msgdict['content'] = msg.text
+            images = message[0].find_all("img")
+            print images
+            if len(images):
+                line.find_element_by_tag_name("img").click()
+                karma.wait()
+                files = os.listdir(samvadxpal.sessiondownloadpath)
+                # print files
+                wabrowser.find_element_by_xpath("//div[@title='Download']").click()
+                karma.wait(waittime="long")
+                newfiles = os.listdir(samvadxpal.sessiondownloadpath)
+                # print newfiles
+                logger.info("Downloaded file {}".format(list(set(newfiles)-set(files))[0]))
+                msgdict['file'] = os.path.join(samvadxpal.sessiondownloadpath, list(set(newfiles)-set(files))[0])
+                karma.wait()
+                wabrowser.find_element_by_xpath("//div[@title='Close']").click()
+                karma.wait()
+        return msgdict
+    else:
+        return "No message in line"

@@ -45,10 +45,13 @@ class CustomQuerySet(QuerySet):
         return "[%s]" % (",".join([doc.to_json() for doc in self]))
 
 
-class Vyakti(PPrintMixin, DynamicDocument):
-    vyakti_id = fields.StringField(unique=True, required=True)
+class SamvadBase(PPrintMixin):
     created_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
     updated_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+
+
+class Vyakti(SamvadBase, DynamicDocument):
+    vyakti_id = fields.StringField(unique=True, required=True)
     lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
     lastinteracted_timestamp = fields.DateTimeField()
     naam = fields.ListField()
@@ -57,11 +60,18 @@ class Vyakti(PPrintMixin, DynamicDocument):
         return "Vyakti (%r)" % (self.vyakti_id)
 
 
-class AbhiVyakti(PPrintMixin, DynamicDocument):
+class AbhiVyakti(SamvadBase, DynamicDocument):
     vyakti = fields.ReferenceField(Vyakti)
-    created_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
-    updated_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
     lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
     lastinteracted_timestamp = fields.DateTimeField()
     naam = fields.ListField()
     flavor = fields.StringField(default="abhivyakti")
+
+
+class Sandesh(SamvadBase, DynamicDocument):
+    sandesh = fields.StringField()
+
+
+class Samvad(SamvadBase, DynamicDocument):
+    sandesh = fields.ListField(fields.ReferenceField(Sandesh))
+    naam = fields.StringField()
