@@ -259,3 +259,25 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
             return "No message in line"
     except Exception as e:
         return str(e)
+
+
+def update_conv_sandesh(wabrowser, text, logger=baselogger):
+    p = wa_get_conv_messages(wabrowser, text, historical=False)
+    messages = []
+    for message in p:
+        m = wa_get_message(wabrowser, message)
+        if type(m) == dict and m != {}:
+            messages.append(m)
+    for message in messages:
+        if len(documents.Sandesh.objects(sender=message['sender'], sandesh=message['content'])) == 0:
+            try:
+                message['sandesh'] = message['content']
+                if validate_sandesh_dict(message)['status'] is True:
+                    m = create_sandesh(message)
+                    logger.info("Created sandesh {}".format(m))
+                else:
+                    logger.error(validate_sandesh_dict(message)['message'])
+            except Exception as e:
+                logger.error("{} {}".format(type(e), str(e)))
+        else:
+            logger.error("{} is a duplicate of a previous sandesh".format(message))
