@@ -55,6 +55,24 @@ def validate_abhivyakti_dict(vyaktidict, new=True, logger=baselogger):
     return validation
 
 
+def validate_sandesh_dict(sandeshdict, new=True, logger=baselogger):
+    validation = {}
+    validation['status'] = True
+    validation['message'] = "Valid abhivyakti"
+    required_keys = []
+    if new is True:
+        required_keys = ["sandesh"]
+    string_keys = []
+    mobile_nums = []
+    validation = utils.validate_dict(
+        sandeshdict, required_keys=required_keys, string_keys=string_keys, mobile_nums=mobile_nums)
+    if validation['status'] is True:
+        logger.info("sandeshdict: " + validation['message'])
+    else:
+        logger.error("sandeshdict: " + validation['message'])
+    return validation
+
+
 def create_vyakti(vyaktidict, logger=baselogger):
     if validate_vyakti_dict(vyaktidict)['status']:
         try:
@@ -90,6 +108,23 @@ def create_abhivyakti(abhivyaktidict, logger=baselogger):
         except Exception as e:
             logger.error("{} {}".format(type(e), str(e)))
             return "{} {}".format(type(e), str(e))
+
+
+def create_sandesh(sandeshdict, logger=baselogger):
+    if validate_sandesh_dict(sandeshdict)['status']:
+        try:
+            sandesh = documents.Sandesh(**sandeshdict)
+            sandesh.save()
+            logger.info("{} created".format(sandesh))
+            return sandesh
+        except Exception as e:
+            logger.error("{} {}".format(type(e), str(e)))
+            return "{} {}".format(type(e), str(e))
+
+
+def create_samvad(samvaddict, logger=baselogger):
+    # Placeholder
+    return samvaddict
 
 
 def sighted_abhivyakti(abhivyakti, logger=baselogger):
@@ -167,53 +202,60 @@ def fb_like_page_toggle(fbbrowser, pageurl):
     likebutton.click()
 
 
-def wa_get_conv_messages(wabrowser, text):
+def wa_get_conv_messages(wabrowser, text, historical=True):
     lines = []
     whatsappkarmas.select_conv(wabrowser, text)
-    pane2 = wabrowser.find_element_by_class_name("_2nmDZ")
     karma.wait()
     pane2 = wabrowser.find_element_by_class_name("_2nmDZ")
-
+    count = 0
     while True:
         numlines = len(lines)
         wabrowser.execute_script("arguments[0].scrollTo(0,0)", pane2)
         lines = wabrowser.find_elements_by_class_name("vW7d1")
         karma.wait(waittime="long")
         newnumlines = len(lines)
+        if historical is not True:
+            if count == 2:
+                break
         if newnumlines == numlines:
             break
+        count += 1
     return lines
 
 
 def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
     msgdict = {}
-    linebs = BeautifulSoup(line.get_property("innerHTML"))
-    message = linebs.find_all("div", {"class": "message-in"})
-    print message
-    if len(message):
-        msg = linebs.find("div", {"class": "copyable-text"})
-        if msg:
-            msgts = msg.get("data-pre-plain-text").split("] ")[0].replace("[", "").replace("]", "")
-            msgsender = msg.get("data-pre-plain-text").split("] ")[1]
-            msgdict["created_timestamp"] = datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y")
-            msgdict['sender'] = msgsender
-            msgdict['content'] = msg.text
-            images = message[0].find_all("img")
-            print images
-            if len(images):
-                line.find_element_by_tag_name("img").click()
-                karma.wait()
-                files = os.listdir(samvadxpal.sessiondownloadpath)
-                # print files
-                wabrowser.find_element_by_xpath("//div[@title='Download']").click()
-                karma.wait(waittime="long")
-                newfiles = os.listdir(samvadxpal.sessiondownloadpath)
-                # print newfiles
-                logger.info("Downloaded file {}".format(list(set(newfiles)-set(files))[0]))
-                msgdict['file'] = os.path.join(samvadxpal.sessiondownloadpath, list(set(newfiles)-set(files))[0])
-                karma.wait()
-                wabrowser.find_element_by_xpath("//div[@title='Close']").click()
-                karma.wait()
-        return msgdict
-    else:
-        return "No message in line"
+    try:
+        wabrowser.execute_script("arguments[0].scrollIntoView(true)", line)
+        linebs = BeautifulSoup(line.get_property("innerHTML"))
+        message = linebs.find_all("div", {"class": "message-in"})
+        print message
+        if len(message):
+            msg = linebs.find("div", {"class": "copyable-text"})
+            if msg:
+                msgts = msg.get("data-pre-plain-text").split("] ")[0].replace("[", "").replace("]", "")
+                msgsender = msg.get("data-pre-plain-text").split("] ")[1]
+                msgdict["created_timestamp"] = datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y")
+                msgdict['sender'] = msgsender.replace(": ", "").replace(" ", "")
+                msgdict['content'] = msg.text
+                images = message[0].find_all("img")
+                print images
+                if len(images):
+                    line.find_element_by_tag_name("img").click()
+                    karma.wait()
+                    files = os.listdir(samvadxpal.sessiondownloadpath)
+                    # print files
+                    wabrowser.find_element_by_xpath("//div[@title='Download']").click()
+                    karma.wait(waittime="long")
+                    newfiles = os.listdir(samvadxpal.sessiondownloadpath)
+                    # print newfiles
+                    logger.info("Downloaded file {}".format(list(set(newfiles)-set(files))[0]))
+                    msgdict['file'] = os.path.join(samvadxpal.sessiondownloadpath, list(set(newfiles)-set(files))[0])
+                    karma.wait()
+                    wabrowser.find_element_by_xpath("//div[@title='Close']").click()
+                    karma.wait()
+            return msgdict
+        else:
+            return "No message in line"
+    except Exception as e:
+        return str(e)
