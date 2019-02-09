@@ -1,0 +1,132 @@
+@import url("https://fonts.googleapis.com/css?family=Nunito");
+
+
+#tree-container {
+	position: absolute;
+	left: 0px;
+	width: 100%;
+}
+
+.svgContainer {
+  	display: block;
+    margin: auto;
+}
+
+.node {
+	cursor: pointer;
+	font-size: 10px;
+}
+
+.node-rect {
+}
+
+.node-rect-closed {
+	stroke-width: 2px;
+	stroke: rgb(0,0,0);
+}
+
+.link {
+	fill: none;
+	stroke: lightsteelblue;
+	stroke-width: 2px;
+}
+
+.linkselected {
+	fill: none;
+	stroke: tomato;
+	stroke-width: 2px;
+}
+
+.arrow {
+	fill: lightsteelblue;
+	stroke-width: 1px;
+}
+
+.arrowselected {
+	fill: tomato;
+	stroke-width: 5px;
+}
+
+.link text {
+	font: 7px sans-serif;
+	fill: #CC0000;
+}
+
+.wordwrap {
+	white-space: pre-wrap; /* CSS3 */
+	white-space: -moz-pre-wrap; /* Firefox */
+	white-space: -pre-wrap; /* Opera <7 */
+	white-space: -o-pre-wrap; /* Opera 7 */
+	word-wrap: break-word; /* IE */
+}
+
+.node-text {
+	font: 1px sans-serif;
+	color: black;
+}
+
+.tooltip-text-container {
+    height: 100%;
+	width: 100%;
+}
+
+.tooltip-text {
+	visibility: hidden;
+	font: 7px sans-serif;
+	color: white;
+	display: block;
+ 	padding: 5px;
+}
+
+.tooltip-box {
+	background: rgba(0, 0, 0, 0.7);
+	visibility: hidden;
+	position: absolute;
+	border-style: solid;
+    border-width: 1px;
+    border-color: blue;
+    border-top-right-radius: 0.5em;
+}
+
+p {
+	display: inline;
+}
+
+.textcolored {
+	color: blue;
+}
+
+a.exchangeName {
+	color: orange;
+}
+
+.card {background: white;
+	}
+
+
+img {
+	  max-width: 100%;
+	  max-height: 100%;
+	}
+
+	.portrait {
+	    height: 80px;
+	    width: 30px;
+border-radius: 50%;
+	}
+
+	.landscape {
+		width: 100px;
+		height: 100px;
+    display: inline-block;
+		margin-right:20px;
+		border-radius: 30%;
+
+	}
+	}
+
+	.square {
+	    height: 75px;
+	    width: 75px;
+	}
+	

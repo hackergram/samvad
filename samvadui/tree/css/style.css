@@ -1,0 +1,128 @@
+@import url("https://fonts.googleapis.com/css?family=Nunito");
+body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  font-family: 'Nunito', sans-serif;
+  color: #323232;
+}
+body main {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+}
+body main .card {
+  width: 470px;
+  min-height: 185px;
+  display: flex;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  background: rgba(255, 255, 255, 0.8);
+}
+body main .card .avatar {
+  width: 100px;
+  height: 100px;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+body main .card .infos {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+body main .card .infos div:not(:last-child) {
+  margin-bottom: 10px;
+}
+body main .card .infos div.capitalize {
+  text-transform: capitalize;
+}
+body main .card .infos div.name {
+  font-size: 150%;
+  font-weight: bold;
+}
+body main .card .infos div i {
+  margin-right: 10px;
+}
+body main .refresh {
+  display: flex;
+  flex-direction: column;
+  margin-left: 40px;
+}
+body main .refresh i {
+  position: relative;
+  height: 40px;
+  width: 40px;
+  margin: 10px 0;
+  font-size: 110%;
+  line-height: 40px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background .2s ease-in-out, box-shadow .2s ease-in-out;
+}
+body main .refresh i:hover {
+  background: white;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.16), 0 6px 10px rgba(0, 0, 0, 0.23);
+}
+body main .refresh i:hover:after {
+  opacity: 1;
+}
+body main .refresh i:after {
+  content: attr(data-text);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 80%;
+  font-family: 'Nunito', sans-serif;
+  line-height: initial;
+  background: white;
+  padding: 2.5px 10px;
+  border-radius: 1000px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .2s ease-in-out;
+}
+
+@media only screen and (max-width: 800px) {
+  body main {
+    flex-direction: column !important;
+    font-size: 80%;
+  }
+  body main .card {
+    max-width: 80%;
+    width: auto;
+    min-height: 150px;
+  }
+  body main .refresh {
+    flex-direction: row;
+    margin-left: 0;
+    margin-top: 30px;
+  }
+  body main .refresh i {
+    margin: 0 10px;
+  }
+  body main .refresh i:after {
+    display: none;
+  }
+}
+body .copy {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 5px 10px;
+  color: white;
+}
+body .copy a {
+  color: inherit;
+}
