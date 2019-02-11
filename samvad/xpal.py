@@ -235,7 +235,7 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
             if msg:
                 msgts = msg.get("data-pre-plain-text").split("] ")[0].replace("[", "").replace("]", "")
                 msgsender = msg.get("data-pre-plain-text").split("] ")[1]
-                msgdict["created_timestamp"] = datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y")
+                msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y"))
                 msgdict['sender'] = msgsender.replace(": ", "").replace(" ", "")
                 msgdict['content'] = msg.text
                 images = message[0].find_all("img")
