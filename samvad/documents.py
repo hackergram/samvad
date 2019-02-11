@@ -55,13 +55,15 @@ class Vyakti(SamvadBase, DynamicDocument):
     lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
     lastinteracted_timestamp = fields.DateTimeField()
     naam = fields.ListField()
+    abhivyaktis = fields.ListField()
 
     def __str__(self):
         return "Vyakti (%r)" % (self.vyakti_id)
 
 
 class AbhiVyakti(SamvadBase, DynamicDocument):
-    vyakti = fields.ReferenceField(Vyakti)
+    swami = fields.ReferenceField(Vyakti)
+    vyaktis = fields.ListField(fields.ReferenceField(Vyakti))
     lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
     lastinteracted_timestamp = fields.DateTimeField()
     naam = fields.ListField()
