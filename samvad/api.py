@@ -6,7 +6,8 @@ Created on Sat Sep 22 20:54:42 2018
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_mongoengine import MongoEngine
-
+import json
+import datetime
 from flask_restful import reqparse, Api, Resource
 
 import urllib
@@ -347,6 +348,17 @@ class SandeshResource(Resource):
                     resp = "Deleted sandesh {}".format(respdict)
                     status = "success"
             except Exception as e:
+                resp = "{} {}".format(type(e), str(e))
+                status = "error"
+        elif command == "search":
+            app.logger.info("SandeshResource: Searching Sandesh")
+            try:
+                queryset = xpal.search_sandesh(respdict)
+                resp = queryset
+                status = "success"
+            except Exception as e:
+                app.logger.error("{} {} \n {}".format(
+                    type(e), str(e), respdict))
                 resp = "{} {}".format(type(e), str(e))
                 status = "error"
         else:

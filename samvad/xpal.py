@@ -122,6 +122,30 @@ def create_sandesh(sandeshdict, logger=baselogger):
             return "{} {}".format(type(e), str(e))
 
 
+def search_sandesh(search_keys, logger=baselogger):
+    date_frm = None
+    date_to = None
+    vyakti_id = None
+    logger.info(search_keys)
+    if "date_frm" in search_keys and search_keys['date_frm'] != "":
+        date_frm = datetime.datetime.strptime(
+            search_keys['date_frm'], "%Y-%m-%d %H:%M:%S")
+    if "date_to" in search_keys and search_keys['date_to'] != "":
+        date_to = datetime.datetime.strptime(
+            search_keys['date_to'], "%Y-%m-%d %H:%M:%S")
+    if "vyakti_id" in search_keys and search_keys['vyakti_id'] != "0":
+        vyakti_id = search_keys['vyakti_id']
+    sandeshlist = documents.Sandesh.objects
+    if vyakti_id is not None:
+        sandeshlist = sandeshlist.filter(vyakti_id=vyakti_id)
+    if date_frm is not None:
+        logger.info("Filtering to date from {}".format(date_frm))
+        sandeshlist = sandeshlist.filter(created_timestamp__gt=date_frm)
+    if date_to is not None:
+        sandeshlist = sandeshlist.filter(created_timestamp__lt=date_to)
+    return sandeshlist
+
+
 def create_samvad(samvaddict, logger=baselogger):
     # Placeholder
     return samvaddict
@@ -212,6 +236,7 @@ def wa_get_conv_messages(wabrowser, text, historical=True):
         numlines = len(lines)
         wabrowser.execute_script("arguments[0].scrollTo(0,0)", pane2)
         lines = wabrowser.find_elements_by_class_name("vW7d1")
+        # TODO: Replace with Whatsapp Classmap in Xetrapal
         karma.wait(waittime="long")
         newnumlines = len(lines)
         if historical is not True:
@@ -230,6 +255,7 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
         linebs = BeautifulSoup(line.get_property("innerHTML"))
         message = linebs.find_all("div", {"class": "message-in"})
         print message
+        # TODO: Replace with Whatsapp Classmap in Xetrapal
         if len(message):
             msg = linebs.find("div", {"class": "copyable-text"})
             if msg:
@@ -237,7 +263,9 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
                 msgsender = msg.get("data-pre-plain-text").split("] ")[1]
                 msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y"))
                 msgdict['sender'] = msgsender.replace(": ", "").replace(" ", "")
-                msgdict['content'] = msg.text
+                msgdict['content'] = [x for x in msg.strings]
+                msgdict['displayed_sender'] = linebs.find("span", {"class": "RZ7GO"}).text
+                msgdict['displayed_sender_name'] = linebs.find("span", {"class": "_3Ye_R"}).text
                 images = message[0].find_all("img")
                 print images
                 if len(images):
@@ -269,9 +297,9 @@ def update_samvad(wabrowser, samvad, logger=baselogger):
         if type(m) == dict and m != {}:
             messages.append(m)
     for message in messages:
-        if len(documents.Sandesh.objects(sender=message['sender'], sandesh=message['content'])) == 0:
+        if len(documents.Sandesh.objects(sender=message['sender'], sandesh="\n".join(message['content']))) == 0:
             try:
-                message['sandesh'] = message['content']
+                message['sandesh'] = "\n".join(message['content'])
                 if validate_sandesh_dict(message)['status'] is True:
                     m = create_sandesh(message)
                     logger.info("Created sandesh {}".format(m))
