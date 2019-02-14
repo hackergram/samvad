@@ -261,8 +261,8 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
         return str(e)
 
 
-def update_conv_sandesh(wabrowser, text, logger=baselogger):
-    p = wa_get_conv_messages(wabrowser, text, historical=False)
+def update_samvad(wabrowser, samvad, logger=baselogger):
+    p = wa_get_conv_messages(wabrowser, samvad.naam, historical=False)
     messages = []
     for message in p:
         m = wa_get_message(wabrowser, message)
@@ -275,6 +275,9 @@ def update_conv_sandesh(wabrowser, text, logger=baselogger):
                 if validate_sandesh_dict(message)['status'] is True:
                     m = create_sandesh(message)
                     logger.info("Created sandesh {}".format(m))
+                    samvad.sandesh.append(m)
+                    samvad.save()
+                    logger.info("Added sandesh {} to samvad {}".format(m, samvad))
                 else:
                     logger.error(validate_sandesh_dict(message)['message'])
             except Exception as e:
