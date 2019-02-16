@@ -33,7 +33,7 @@
 							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
 							" ",
 							"});  ",
-							"pm.test(\"Sandesh exist and listing\", function () {",
+							"pm.test(jsonData.resp.length+\" Sandesh exist and listing\", function () {",
 							"    ",
 							"    pm.expect(jsonData.status).to.eql(\"success\");",
 							"});"
