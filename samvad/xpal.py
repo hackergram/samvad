@@ -291,19 +291,21 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
                 images = message[0].find_all("img")
                 print images
                 if len(images):
-                    line.find_element_by_tag_name("img").click()
-                    karma.wait()
-                    files = os.listdir(samvadxpal.sessiondownloadpath)
-                    # print files
-                    wabrowser.find_element_by_xpath("//div[@title='Download']").click()
-                    karma.wait(waittime="long")
-                    newfiles = os.listdir(samvadxpal.sessiondownloadpath)
-                    # print newfiles
-                    logger.info("Downloaded file {}".format(list(set(newfiles)-set(files))[0]))
-                    msgdict['file'] = os.path.join(samvadxpal.sessiondownloadpath, list(set(newfiles)-set(files))[0])
-                    karma.wait()
-                    wabrowser.find_element_by_xpath("//div[@title='Close']").click()
-                    karma.wait()
+                    image = line.find_element_by_tag_name("img")
+                    if "blob" in image.get_attribute("src"):
+                        image.click()
+                        karma.wait()
+                        files = os.listdir(samvadxpal.sessiondownloadpath)
+                        # print files
+                        wabrowser.find_element_by_xpath("//div[@title='Download']").click()
+                        karma.wait(waittime="long")
+                        newfiles = os.listdir(samvadxpal.sessiondownloadpath)
+                        # print newfiles
+                        logger.info("Downloaded file {}".format(list(set(newfiles)-set(files))[0]))
+                        msgdict['file'] = os.path.join(samvadxpal.sessiondownloadpath, list(set(newfiles)-set(files))[0])
+                        karma.wait()
+                        wabrowser.find_element_by_xpath("//div[@title='Close']").click()
+                        karma.wait()
             return msgdict
         else:
             return "No message in line"

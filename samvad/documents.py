@@ -84,9 +84,10 @@ class Samvad(SamvadBase, DynamicDocument):
     meta = {'queryset_class': CustomQuerySet}
 
     def to_json(self):
-        data = self.to_mongo()
-        del(data['sandesh'])
+        data = {}
         data['sandeshcount'] = len(self.sandesh)
+        data['naam'] = self.naam
+        data['_id'] = self.id
         # data['sandesh'] = [json.loads(sandesh.to_json()) for sandesh in self.sandesh]
         return bson.json_util.dumps(data)
 
