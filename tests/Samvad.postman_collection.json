@@ -1,0 +1,468 @@
+{
+	"info": {
+		"_postman_id": "8f107c1b-ec1c-462f-a651-873c434014e7",
+		"name": "Samvad",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "listsandesh",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "db9dffad-2e9e-46e5-a7e0-610f7a1a378c",
+						"exec": [
+							"var moment = require('moment')",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"pm.test(\"Sandesh exist and listing\", function () {",
+							"    ",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/sandesh",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"sandesh"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "searchsandeshbydate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "db9dffad-2e9e-46e5-a7e0-610f7a1a378c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"pm.test(\"Sandesh search by date working\", function () {",
+							"    ",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "0eb858cc-3e20-49a7-8f4d-709cd3308997",
+						"exec": [
+							"var moment = require('moment')",
+							"var date_to = moment().format(\"YYYY-MM-DD HH:mm:ss\")",
+							"var date_frm = moment().subtract({days:5}).format(\"YYYY-MM-DD HH:mm:ss\")",
+							"console.log(date_to)",
+							"console.log(date_frm)",
+							"var search_query={}",
+							"search_query['date_frm']=date_frm",
+							"search_query['date_to']=date_to",
+							"console.log(search_query)",
+							"pm.environment.set(\"search_query\", JSON.stringify(search_query));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{search_query}}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/sandesh/search",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"sandesh",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listvyaktis",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7c8df957-9f74-45c3-b89e-d415dda2ff5c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"pm.test(\"Vyaktis exist and are listing\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/vyakti",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"vyakti"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listabhivyaktis",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b895fa52-2164-4b37-a6e4-3466fc037b33",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"pm.test(\"Abhivyaktis exist and are listing\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/abhivyakti",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"abhivyakti"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listsamvad",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b895fa52-2164-4b37-a6e4-3466fc037b33",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"pm.test(\"Samvads exist and listing is working\", function () {",
+							"    ",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});",
+							"",
+							"pm.environment.set(\"samvad_id\", jsonData.resp[0]._id.$oid);",
+							"",
+							"pm.test(\"Successfully set samvad_id for search\", function () {",
+							"    pm.expect(pm.environment.get(\"samvad_id\")).to.eql(jsonData.resp[0]._id.$oid)",
+							"});",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/samvad",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"samvad"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "searchsandeshbysamvad",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b895fa52-2164-4b37-a6e4-3466fc037b33",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"pm.test(\"Sandesh listed for samvad \"+pm.environment.get(\"samvad_id\"), function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "705f9320-60a3-4d21-b2bf-a5e1b1c26fcb",
+						"exec": [
+							"var moment = require('moment')",
+							"var date_to = moment().format(\"YYYY-MM-DD HH:mm:ss\")",
+							"var date_frm = moment().subtract({days:5}).format(\"YYYY-MM-DD HH:mm:ss\")",
+							"console.log(date_to)",
+							"console.log(date_frm)",
+							"var search_query={}",
+							"// search_query['date_frm']=date_frm",
+							"// search_query['date_to']=date_to",
+							"search_query['samvad_id'] = pm.environment.get(\"samvad_id\"); ",
+							"console.log(search_query)",
+							"pm.environment.set(\"search_query\", JSON.stringify(search_query));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{search_query}}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/sandesh/search",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"sandesh",
+						"search"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

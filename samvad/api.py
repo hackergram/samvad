@@ -353,7 +353,7 @@ class SandeshResource(Resource):
                 resp = "{} {}".format(type(e), str(e))
                 status = "error"
         elif command == "search":
-            app.logger.info("SandeshResource: Searching Sandesh")
+            app.logger.info("SandeshResource: Searching Sandesh {}".format(respdict))
             try:
                 queryset = xpal.search_sandesh(respdict)
                 resp = queryset
@@ -390,6 +390,117 @@ class SandeshResource(Resource):
 
 api.add_resource(SandeshResource, "/sandesh", endpoint="sandesh")
 api.add_resource(SandeshResource, "/sandesh/<string:command>", endpoint="sandesh_command")
+
+
+class SamvadResource(Resource):
+    def get(self, command=None):
+        if command is not None:
+            app.logger.info(
+                "SamvadResource: Received Command {}".format(command))
+            if command == "export":
+                try:
+                    resp = xpal.export_samvad()
+                    status = "success"
+                except Exception as e:
+                    app.logger.error("{} {}".format(type(e), str(e)))
+                    resp = "{} {}".format(type(e), str(e))
+                    status = "error"
+            else:
+                resp = "Unrecognized command"
+                status = "error"
+        else:
+            resp = json.loads(xpal.documents.Samvad.objects.all().to_json())
+        if type(resp) == list and resp != []:
+            status = "success"
+        else:
+            status = "error"
+        if resp == []:
+            resp = "No records found"
+        return jsonify({"resp": resp, "status": status})
+
+    def post(self, command=None):
+        app.logger.info("{}".format(request.get_json()))
+        respdict = request.get_json()
+        if command is None:
+            try:
+                if xpal.validate_samvad_dict(respdict)['status'] is True:
+                    resp = xpal.create_samvad(respdict)
+                    if type(resp) != list:
+                        status = "error"
+                    else:
+                        status = "success"
+                else:
+                    status = "error"
+                    resp = xpal.validate_samvad_dict(respdict)['message']
+            except Exception as e:
+                app.logger.error("{} {}".format(type(e), str(e)))
+                resp = "{} {}".format(type(e), str(e))
+                status = "error"
+        elif command == "import":
+            try:
+                # replace with bookinglist=xpal.importbookings(respdict) #91 #83
+                resp = xpal.import_samvad(respdict)
+                if type(resp) != list:
+                    status = "error"
+                else:
+                    status = "success"
+                for samvad in resp:
+                    if "error" in samvad['status'].lower():
+                        status = "error"
+            except Exception as e:
+                resp = "{} {}".format(type(e), str(e))
+                status = "error"
+        elif command == "bulkdelete":
+            try:
+                if type(respdict) != list:
+                    status = "error"
+                    resp = "Bulk Delete Expects a list of samvad ids"
+                else:
+                    for samvad_id in respdict:
+                        xpal.delete_samvad(samvad_id)
+                    resp = "Deleted samvad {}".format(respdict)
+                    status = "success"
+            except Exception as e:
+                resp = "{} {}".format(type(e), str(e))
+                status = "error"
+        elif command == "search":
+            app.logger.info("SamvadResource: Searching Sandesh")
+            try:
+                queryset = xpal.search_samvad(respdict)
+                resp = queryset
+                status = "success"
+            except Exception as e:
+                app.logger.error("{} {} \n {}".format(
+                    type(e), str(e), respdict))
+                resp = "{} {}".format(type(e), str(e))
+                status = "error"
+        else:
+            resp = "Unrecognized command"
+            status = "error"
+        return jsonify({"resp": resp, "status": status})
+
+    def delete(self, samvad_id=None):
+        if samvad_id is None:
+            resp = "No samvad by that ID"
+            status = "error"
+        else:
+            app.logger.info(
+                "SamvadResource: Trying to delete samvad {}".format(samvad_id))
+            try:
+                resp = xpal.delete_samvad(samvad_id)
+                if type(resp) == list:
+                    status = "success"
+                else:
+                    status = "error"
+            except Exception as e:
+                app.logger.error("{} {}".format(type(e), str(e)))
+                resp = "{} {}".format(type(e), str(e))
+                status = "error"
+        return jsonify({"resp": resp, "status": status})
+
+
+api.add_resource(SamvadResource, "/samvad", endpoint="samvad")
+api.add_resource(SamvadResource, "/samvad/<string:command>", endpoint="samvad_command")
 
 
 if __name__ == '__main__':

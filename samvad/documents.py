@@ -10,6 +10,8 @@ from mongoengine import Document, fields, DynamicDocument
 import datetime
 from flask_mongoengine import QuerySet
 from samvad import utils
+import json
+import bson
 
 
 class PPrintMixin(object):
@@ -24,7 +26,7 @@ class PPrintMixin(object):
                 attrs.append('\n    {} = {!s},'.format(name, value))
             elif isinstance(value, (datetime.datetime)):
                 attrs.append('\n    {} = {},'.format(
-                    name, value.strftime("%Y-%m-%d %H:%M:%S")))
+                    name, utils.get_local_ts(value).strftime("%Y-%m-%d %H:%M:%S")))
             else:
                 attrs.append('\n    {} = {!r},'.format(name, value))
         if self._dynamic_fields:
@@ -34,7 +36,7 @@ class PPrintMixin(object):
                     attrs.append('\n    {} = {!s},'.format(name, value))
                 elif isinstance(value, (datetime.datetime)):
                     attrs.append('\n    {} = {},'.format(
-                        name, value.strftime("%Y-%m-%d %H:%M:%S")))
+                        name, utils.get_local_ts(value).strftime("%Y-%m-%d %H:%M:%S")))
                 else:
                     attrs.append('\n    {} = {!r},'.format(name, value))
         return '\n{}: {}\n'.format(type(self).__name__, ''.join(attrs))
@@ -77,5 +79,19 @@ class Sandesh(SamvadBase, DynamicDocument):
 
 
 class Samvad(SamvadBase, DynamicDocument):
-    sandesh = fields.ListField(fields.ReferenceField(Sandesh))
+    sandesh = fields.SortedListField(fields.ReferenceField(Sandesh))
     naam = fields.StringField()
+    meta = {'queryset_class': CustomQuerySet}
+
+    def to_json(self):
+        data = self.to_mongo()
+        del(data['sandesh'])
+        data['sandeshcount'] = len(self.sandesh)
+        # data['sandesh'] = [json.loads(sandesh.to_json()) for sandesh in self.sandesh]
+        return bson.json_util.dumps(data)
+
+    def dump_sandesh(self):
+        data = self.to_mongo()
+        data['sandeshcount'] = len(self.sandesh)
+        data['sandesh'] = [json.loads(sandesh.to_json()) for sandesh in self.sandesh]
+        return bson.json_util.dumps(data['sandesh'])

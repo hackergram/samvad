@@ -127,6 +127,7 @@ def search_sandesh(search_keys, logger=baselogger):
     date_to = None
     vyakti_id = None
     frm_abhivyakti = None
+    samvad_id = None
     logger.info(search_keys)
     if "date_frm" in search_keys and search_keys['date_frm'] != "":
         date_frm = datetime.datetime.strptime(
@@ -138,7 +139,12 @@ def search_sandesh(search_keys, logger=baselogger):
         vyakti_id = search_keys['vyakti_id']
     if "frm_abhivyakti" in search_keys and search_keys['frm_abhivyakti'] != "0":
         frm_abhivyakti = search_keys['frm_abhivyakti']
-    sandeshlist = documents.Sandesh.objects
+    if "samvad_id" in search_keys and search_keys['samvad_id'] != "0":
+            samvad_id = search_keys['samvad_id']
+    if samvad_id is not None:
+        sandeshlist = documents.Sandesh.objects(id__in=[sandesh.id for sandesh in documents.Samvad.objects.with_id(samvad_id).sandesh])
+    else:
+        sandeshlist = documents.Sandesh.objects
     if vyakti_id is not None:
         sandeshlist = sandeshlist.filter(vyakti_id=vyakti_id)
     if frm_abhivyakti is not None:
