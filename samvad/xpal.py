@@ -142,17 +142,22 @@ def search_sandesh(search_keys, logger=baselogger):
     if "samvad_id" in search_keys and search_keys['samvad_id'] != "0":
             samvad_id = search_keys['samvad_id']
     if samvad_id is not None:
+        logger.info("Getting sandeshes from samvad {}".format(samvad_id))
         sandeshlist = documents.Sandesh.objects(id__in=[sandesh.id for sandesh in documents.Samvad.objects.with_id(samvad_id).sandesh])
     else:
+        logger.info("Getting all sandeshes")
         sandeshlist = documents.Sandesh.objects
     if vyakti_id is not None:
+        logger.info("Filtering from vyakti from {}".format(vyakti_id))
         sandeshlist = sandeshlist.filter(vyakti_id=vyakti_id)
     if frm_abhivyakti is not None:
+        logger.info("Filtering from abhivyakti {}".format(frm_abhivyakti))
         sandeshlist = sandeshlist.filter(frm=frm_abhivyakti)
     if date_frm is not None:
         logger.info("Filtering to date from {}".format(date_frm))
         sandeshlist = sandeshlist.filter(created_timestamp__gt=date_frm)
     if date_to is not None:
+        logger.info("Filtering to date to {}".format(date_to))
         sandeshlist = sandeshlist.filter(created_timestamp__lt=date_to)
     return sandeshlist
 
