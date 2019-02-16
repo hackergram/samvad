@@ -4,13 +4,13 @@
   "cust_id": "0"
 }*/
 //serverip="192.168.56.101"
-//search_query={}
+search_query={}
 assperpage=10
 const paginationApp = new Vue({
     el: '#pagination-app',
     data: {
         posts: [],
-        baseUrl: 'http://'+serverip+':5000/sandesh',
+        baseUrl: 'http://'+serverip+':5000/sandesh/search',
         page: 1,
         perPage: assperpage,
         pages: [],
@@ -19,9 +19,9 @@ const paginationApp = new Vue({
         getPosts () {
             //axios.get(this.baseUrl)
             axios({
-                    method: 'get',
+                    method: 'post',
                     url: this.baseUrl,
-                    //data: search_query,
+                    data: search_query,
                     config: { headers: {'Content-Type': 'application/json' }}
             })
             .then(response => {

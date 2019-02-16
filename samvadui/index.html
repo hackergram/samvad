@@ -177,7 +177,7 @@
         </div>
 
     <script>
-        var serverip="192.168.56.103"
+        var serverip="192.168.56.101"
         var assignments=[]
         var assperpage=2
         var sort_field="created_timestamp"
@@ -188,12 +188,11 @@
                 search_query.date_to=$("#date_to").val()
               //  search_query.cust_id=$("#cust_id").val()
               //  search_query.status=$("#status").val()
-              if (search_query.status==="all"){
-                search_query.status=null
-              //  }
+
                 console.log(search_query)
-                paginationApp.postPosts()
-            }
+                paginationApp.getPosts()
+
+        }
           var sortAssignments=function(){
             sort_order=$("#assign_order").val()
             sort_field=$("#assign_sort").val()
