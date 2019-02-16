@@ -46,32 +46,34 @@ class CustomQuerySet(QuerySet):
 
 
 class SamvadBase(PPrintMixin):
-    created_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
-    updated_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+    created_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow, required=True)
+    updated_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow, required=True)
+
+
+class AbhiVyakti(SamvadBase, DynamicDocument):
+    owner = fields.StringField()
+    lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
+    vyaktis = fields.ListField()
+    lastinteracted_timestamp = fields.DateTimeField()
+    naam = fields.ListField()
+    type = fields.StringField(default="abhivyakti")
 
 
 class Vyakti(SamvadBase, DynamicDocument):
-    vyakti_id = fields.StringField(unique=True, required=True)
+    vyakti_id = fields.StringField(unique=True)
     lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
     lastinteracted_timestamp = fields.DateTimeField()
     naam = fields.ListField()
-    abhivyaktis = fields.ListField()
+    abhivyaktis = fields.ListField(fields.ReferenceField(AbhiVyakti))
 
     def __str__(self):
         return "Vyakti (%r)" % (self.vyakti_id)
 
 
-class AbhiVyakti(SamvadBase, DynamicDocument):
-    swami = fields.ReferenceField(Vyakti)
-    vyaktis = fields.ListField(fields.ReferenceField(Vyakti))
-    lastseen_timestamp = fields.DateTimeField(default=datetime.datetime.utcnow(), required=True)
-    lastinteracted_timestamp = fields.DateTimeField()
-    naam = fields.ListField()
-    flavor = fields.StringField(default="abhivyakti")
-
-
 class Sandesh(SamvadBase, DynamicDocument):
     sandesh = fields.StringField()
+    sender = fields.StringField()
+    frm = fields.ReferenceField(AbhiVyakti)
 
 
 class Samvad(SamvadBase, DynamicDocument):

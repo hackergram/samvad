@@ -262,10 +262,16 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
                 msgts = msg.get("data-pre-plain-text").split("] ")[0].replace("[", "").replace("]", "")
                 msgsender = msg.get("data-pre-plain-text").split("] ")[1]
                 msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y"))
-                msgdict['sender'] = msgsender.replace(": ", "").replace(" ", "")
+                if not utils.engalpha.search(msgsender):
+                    msgdict['sender'] = msgsender.replace(": ", "").replace(" ", "")
+                else:
+                    msgdict['sender'] = msgsender.replace(": ", "")
                 msgdict['content'] = [x for x in msg.strings]
-                msgdict['displayed_sender'] = linebs.find("span", {"class": "RZ7GO"}).text
-                msgdict['displayed_sender_name'] = linebs.find("span", {"class": "_3Ye_R"}).text
+                try:
+                    msgdict['displayed_sender'] = linebs.find("span", {"class": "RZ7GO"}).text
+                    msgdict['displayed_sender_name'] = linebs.find("span", {"class": "_3Ye_R"}).text
+                except Exception as e:
+                    logger.error("Could not get display name and sender")
                 images = message[0].find_all("img")
                 print images
                 if len(images):
@@ -302,7 +308,40 @@ def update_samvad(wabrowser, samvad, logger=baselogger):
                 message['sandesh'] = "\n".join(message['content'])
                 if validate_sandesh_dict(message)['status'] is True:
                     m = create_sandesh(message)
+                    m.medium = "whatsapp"
+                    m.save()
                     logger.info("Created sandesh {}".format(m))
+                    a = documents.AbhiVyakti(type=m.medium)
+                    if utils.engalpha.search(m.sender):
+                        logger.info("Found Whatsapp Contact: {}".format(m.sender))
+                        a = documents.AbhiVyakti.objects(type="whatsapp", whatsapp_contact=m.sender)
+                        if len(a) == 0:
+                            ab = documents.AbhiVyakti(type="whatsapp")
+                            ab.whatsapp_contact = m.sender
+                            ab.save()
+                            logger.info("Created Abhivyakti {}".format(ab))
+                            m.frm = ab
+                            m.save()
+                        else:
+                            logger.info("AbhiVyakti Exists")
+                            m.frm = a[0]
+                            m.save()
+
+                    else:
+                        logger.info("Found Mobile Num: {}".format(m.sender))
+                        a = documents.AbhiVyakti.objects(type="whatsapp", mobile_num=m.sender)
+                        if len(a) == 0:
+                            ab = documents.AbhiVyakti(type="whatsapp")
+                            ab.mobile_num = m.sender
+                            ab.save()
+                            logger.info("Created Abhivyakti {}".format(ab))
+                            m.frm = ab
+                            m.save()
+                        else:
+                            print "AbhiVyakti Exists"
+                            logger.info("AbhiVyakti Exists")
+                            m.frm = a[0]
+                            m.save()
                     samvad.sandesh.append(m)
                     samvad.save()
                     logger.info("Added sandesh {} to samvad {}".format(m, samvad))
