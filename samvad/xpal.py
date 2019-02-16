@@ -126,6 +126,7 @@ def search_sandesh(search_keys, logger=baselogger):
     date_frm = None
     date_to = None
     vyakti_id = None
+    frm_abhivyakti = None
     logger.info(search_keys)
     if "date_frm" in search_keys and search_keys['date_frm'] != "":
         date_frm = datetime.datetime.strptime(
@@ -135,9 +136,13 @@ def search_sandesh(search_keys, logger=baselogger):
             search_keys['date_to'], "%Y-%m-%d %H:%M:%S")
     if "vyakti_id" in search_keys and search_keys['vyakti_id'] != "0":
         vyakti_id = search_keys['vyakti_id']
+    if "frm_abhivyakti" in search_keys and search_keys['frm_abhivyakti'] != "0":
+        frm_abhivyakti = search_keys['frm_abhivyakti']
     sandeshlist = documents.Sandesh.objects
     if vyakti_id is not None:
         sandeshlist = sandeshlist.filter(vyakti_id=vyakti_id)
+    if frm_abhivyakti is not None:
+        sandeshlist = sandeshlist.filter(frm=frm_abhivyakti)
     if date_frm is not None:
         logger.info("Filtering to date from {}".format(date_frm))
         sandeshlist = sandeshlist.filter(created_timestamp__gt=date_frm)

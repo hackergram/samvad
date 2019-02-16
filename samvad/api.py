@@ -169,7 +169,9 @@ class AbhiVyaktiResource(Resource):
             vyakti = xpal.documents.Vyakti.objects(vyakti_id=vyakti_id)
             if len(vyakti) > 0:
                 vyakti = vyakti[0]
-            resp = list(xpal.documents.AbhiVyakti.objects(vyakti=vyakti))
+                resp = list(xpal.documents.AbhiVyakti.objects(vyakti=vyakti))
+            else:
+                resp = "No Vyakti by that ID"
         else:
             resp = list(xpal.documents.AbhiVyakti.objects.all())
         if type(resp) == list and resp != []:
