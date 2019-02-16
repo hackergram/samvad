@@ -57,7 +57,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
     <script type="text/javascript" src="https://rawgit.com/tempusdominus/bootstrap-4/master/build/js/tempusdominus-bootstrap-4.js"></script>
-    <script type="text/javascript" src="//gyrocode.github.io/jquery-datatables-checkboxes/1.2.11/js/dataTables.checkboxes.min.js"></script>
+    <script type="text/javascript" src="https://gyrocode.github.io/jquery-datatables-checkboxes/1.2.11/js/dataTables.checkboxes.min.js"></script>
 
 
         <div class="container">
@@ -86,11 +86,20 @@
                                 <div class="input-group date" id="datetimepicker2" data-target-input="nearest">
                                     <input type="text" id="date_to" class="form-control datetimepicker-input" placeholder="Date To" data-target="#datetimepicker2">
                                     <div class="input-group-append" data-target="#datetimepicker2" data-toggle="datetimepicker">
-                                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+
+                                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="searchAssignments()">Search</button>
+                            </div>
+
+
+                        </div>
+
                         <div class="col-sm-4 small-cols date-picker-wrap">
                             <div class="form-group">
                                 <select class="form-control" id="samvad">
@@ -113,7 +122,7 @@
                                        <div class="col-sm-4 small-cols">
                                            <select id="assign_sort" name="assign_sort" class="form-control" onchange="sortAssignments()">
                                                <option value="created_timestamp">Created Time</option>
-                               visibility: hidden;                  <option value="reporting_timestamp" selected="selected">Reporting Time</option>
+                               visibility: hidden;
                                            </select>
                                        </div>
                                       <div class="col-sm-4 small-cols">
@@ -168,13 +177,46 @@
         </div>
 
     <script>
-        var serverip="192.168.56.101"
+        var serverip="192.168.56.103"
         var assignments=[]
         var assperpage=2
         var sort_field="created_timestamp"
         var sort_order="ascending"
+        var searchAssignments=function(){
+                search_query={}
+                search_query.date_frm=$("#date_frm").val()
+                search_query.date_to=$("#date_to").val()
+              //  search_query.cust_id=$("#cust_id").val()
+              //  search_query.status=$("#status").val()
+              if (search_query.status==="all"){
+                search_query.status=null
+              //  }
+                console.log(search_query)
+                paginationApp.postPosts()
+            }
+          var sortAssignments=function(){
+            sort_order=$("#assign_order").val()
+            sort_field=$("#assign_sort").val()
+            console.log("Re-getting assignments")
+            paginationApp.getPosts()
+        }
+        var toggleassignment=function(assid){
+              var eventsrc = $("#"+assid+"-checked")
+            console.log(eventsrc[0].checked, assid)
+            if(eventsrc[0].checked===true){
+                addassignment(assid)
+            }else{
+                removeassignment(assid)
+
+            }
+        }
+
     </script>
     <script src="dist/js/pagination.js"></script>
-
+    <script>
+        $('#datetimepicker1').datetimepicker({format: 'YYYY-MM-DD HH:mm:ss'});
+        $('#datetimepicker2').datetimepicker({format: 'YYYY-MM-DD HH:mm:ss'});
+        $('#datetimepicker3').datetimepicker({format: 'YYYY-MM-DD HH:mm:ss'});
+    </script>
 </body>
 </html>
