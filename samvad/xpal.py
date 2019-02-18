@@ -44,7 +44,7 @@ def validate_abhivyakti_dict(vyaktidict, new=True, logger=baselogger):
     required_keys = []
     # if new is True:
     #    required_keys = ["vyakti_id"]
-    # string_keys = ["mobile_num"]
+    string_keys = ["mobile_num"]
     mobile_nums = ["mobile_num"]
     validation = utils.validate_dict(
         vyaktidict, required_keys=required_keys, string_keys=string_keys, mobile_nums=mobile_nums)
@@ -92,11 +92,12 @@ def create_vyakti(vyaktidict, logger=baselogger):
 def update_vyakti(vyakti_id, vyaktidict, logger=baselogger):
     vyakti = documents.Vyakti.objects(vyakti_id=vyakti_id)
     if "vyakti_id" in vyaktidict.keys():
-        vyaktidict.pop(vyakti_id)
+        vyaktidict.pop("vyakti_id")
     if len(vyakti):
         vyakti = vyakti[0]
         if validate_vyakti_dict(vyaktidict, new=False)['status']:
             try:
+                logger.info("Trying to save {} to {}".format(vyaktidict, vyakti))
                 vyakti.update(**vyaktidict)
                 vyakti.save()
                 vyakti.reload()
@@ -109,8 +110,17 @@ def update_vyakti(vyakti_id, vyaktidict, logger=baselogger):
             logger.error("{}".format(errmsg))
             return "error:" + errmsg
     else:
-        logger.error("No vyakti by id {}".format(vyakti))
-        return "error: No vyakti by id {}".format(vyakti)
+        logger.error("No vyakti by id {}".format(vyakti_id))
+        return "error: No vyakti by id {}".format(vyakti_id)
+
+
+def delete_vyakti(vyakti_id, logger=baselogger):
+    d = documents.Vyakti.objects(vyakti_id=vyakti_id)
+    if len(d):
+        d[0].delete()
+        return []
+    else:
+        return "error: No Vyakti by that id"
 
 
 def sighted_vyakti(vyakti, logger=baselogger):
@@ -129,6 +139,15 @@ def create_abhivyakti(abhivyaktidict, logger=baselogger):
         except Exception as e:
             logger.error("{} {}".format(type(e), str(e)))
             return "{} {}".format(type(e), str(e))
+
+
+def delete_abhivyakti(abhivyakti_id, logger=baselogger):
+    d = [documents.AbhiVyakti.objects.with_id(abhivyakti_id)]
+    if len(d):
+        d[0].delete()
+        return []
+    else:
+        return "error: No AbhiVyakti by that id"
 
 
 def update_abhivyakti(abhivyakti_id, abhivyaktidict, logger=baselogger):
@@ -151,8 +170,8 @@ def update_abhivyakti(abhivyakti_id, abhivyaktidict, logger=baselogger):
             logger.error("{}".format(errmsg))
             return "error:" + errmsg
     else:
-        logger.error("No vyakti by id {}".format(abhivyakti))
-        return "error: No vyakti by id {}".format(abhivyakti)
+        logger.error("No vyakti by id {}".format(abhivyakti_id))
+        return "error: No vyakti by id {}".format(abhivyakti_id)
 
 
 def create_sandesh(sandeshdict, logger=baselogger):

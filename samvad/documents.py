@@ -59,6 +59,7 @@ class AbhiVyakti(SamvadBase, DynamicDocument):
     lastinteracted_timestamp = fields.DateTimeField()
     naam = fields.ListField()
     type = fields.StringField(default="abhivyakti")
+    mobile_num = fields.StringField(unique=True)
 
 
 class Vyakti(SamvadBase, DynamicDocument):

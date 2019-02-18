@@ -60,15 +60,12 @@ class VyaktiResource(Resource):
         respdict = request.get_json()
         if command is None:
             try:
-                if xpal.validate_vyakti_dict(respdict)['status'] is True:
-                    resp = xpal.create_vyakti(respdict)
-                    if type(resp) != list:
-                        status = "error"
-                    else:
-                        status = "success"
-                else:
+                resp = xpal.create_vyakti(respdict)
+                if type(resp) == str:
                     status = "error"
-                    resp = xpal.validate_vyakti_dict(respdict)['message']
+                else:
+                    resp = [resp]
+                    status = "success"
             except Exception as e:
                 app.logger.error("{} {}".format(type(e), str(e)))
                 resp = "{} {}".format(type(e), str(e))
@@ -108,16 +105,12 @@ class VyaktiResource(Resource):
         app.logger.info("{}".format(request.get_json()))
         respdict = request.get_json()
         try:
-            if xpal.validate_vyakti_dict(respdict, new=False)['status'] is True:
-                resp = xpal.update_vyakti(vyakti_id, respdict)
-                if type(resp) != list:
-                    status = "error"
-                else:
-                    status = "success"
-            else:
+            resp = xpal.update_vyakti(vyakti_id, respdict)
+            if type(resp) == str:
                 status = "error"
-                resp = xpal.validate_vyakti_dict(
-                    respdict, new=False)['message']
+            else:
+                resp = [resp]
+                status = "success"
         except Exception as e:
             app.logger.error("{} {}".format(type(e), str(e)))
             resp = "{} {}".format(type(e), str(e))
@@ -169,7 +162,7 @@ class AbhiVyaktiResource(Resource):
             vyakti = xpal.documents.Vyakti.objects(vyakti_id=vyakti_id)
             if len(vyakti) > 0:
                 vyakti = vyakti[0]
-                resp = list(xpal.documents.AbhiVyakti.objects(vyakti=vyakti))
+                resp = list(xpal.documents.AbhiVyakti.objects(vyaktis=vyakti))
             else:
                 resp = "No Vyakti by that ID"
         else:
@@ -187,15 +180,12 @@ class AbhiVyaktiResource(Resource):
         respdict = request.get_json()
         if command is None:
             try:
-                if xpal.validate_abhivyakti_dict(respdict)['status'] is True:
-                    resp = xpal.create_abhivyakti(respdict)
-                    if type(resp) != list:
-                        status = "error"
-                    else:
-                        status = "success"
-                else:
+                resp = xpal.create_abhivyakti(respdict)
+                if type(resp) != list:
                     status = "error"
-                    resp = xpal.validate_abhivyakti_dict(respdict)['message']
+                else:
+                    resp = [resp]
+                    status = "success"
             except Exception as e:
                 app.logger.error("{} {}".format(type(e), str(e)))
                 resp = "{} {}".format(type(e), str(e))
@@ -236,16 +226,12 @@ class AbhiVyaktiResource(Resource):
         app.logger.info("{}".format(request.get_json()))
         respdict = request.get_json()
         try:
-            if xpal.validate_abhivyakti_dict(respdict, new=False)['status'] is True:
-                resp = xpal.update_abhivyakti(abhivyakti_id, respdict)
-                if type(resp) != list:
-                    status = "error"
-                else:
-                    status = "success"
-            else:
+            resp = xpal.update_abhivyakti(abhivyakti_id, respdict)
+            if type(resp) == str:
                 status = "error"
-                resp = xpal.validate_abhivyakti_dict(
-                    respdict, new=False)['message']
+            else:
+                resp = [resp]
+                status = "success"
         except Exception as e:
             app.logger.error("{} {}".format(type(e), str(e)))
             resp = "{} {}".format(type(e), str(e))
@@ -273,6 +259,7 @@ class AbhiVyaktiResource(Resource):
 
 
 api.add_resource(AbhiVyaktiResource, "/abhivyakti", endpoint="abhivyakti")
+api.add_resource(AbhiVyaktiResource, "/abhivyakti/by_id/<string:abhivyakti_id>", endpoint="abhivyakti_by_id")
 api.add_resource(AbhiVyaktiResource, "/abhivyakti/by_vyakti_id/<string:vyakti_id>", endpoint="abhivyaktiid")
 api.add_resource(AbhiVyaktiResource, "/abhivyakti/<string:command>", endpoint="abhivyakti_command")
 
