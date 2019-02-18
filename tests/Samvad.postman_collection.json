@@ -639,6 +639,510 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "createvyakti",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5e086545-879e-4bc9-b6bc-299669b8595c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"",
+							"if(jsonData.status===\"success\"){",
+							"    ",
+							"pm.environment.set(\"testvyakti_id\", jsonData.resp[0].vyakti_id);",
+							"}",
+							"else{",
+							"    pm.environment.set(\"testvyakti_id\", \"<None>\");    ",
+							"}",
+							"pm.test(\"Vyaktis \"+ pm.environment.get(\"testvyakti_id\") +\" created successfully\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"vyakti_id\": \"testvyakti\",\n\t\"naam\": [\"Test Vyakti\"],\n\t\"mobile_nums\": [\"+918989898989\"]\n}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/vyakti",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"vyakti"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createvyaktidupfail",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5e086545-879e-4bc9-b6bc-299669b8595c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"",
+							"",
+							"pm.test(\"Vyaktis \"+ pm.environment.get(\"testvyakti_id\") +\" already exists and cant be created\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"error\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"vyakti_id\": \"testvyakti\",\n\t\"naam\": [\"Test Vyakti\"],\n\t\"mobile_nums\": [\"+918989898989\"]\n}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/vyakti",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"vyakti"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "updatevyakti",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5e086545-879e-4bc9-b6bc-299669b8595c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"",
+							"if(jsonData.status===\"success\"){",
+							"    ",
+							"pm.environment.set(\"testvyakti_id\", jsonData.resp[0].vyakti_id);",
+							"}",
+							"else{",
+							"    pm.environment.set(\"testvyakti_id\", \"<None>\");    ",
+							"}",
+							"pm.test(\"Vyaktis \"+ pm.environment.get(\"testvyakti_id\") +\" updated successfully\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"vyakti_id\": \"testvyakti\",\n\t\"naam\": [\"Test Vyakti\", \"Test Vyakti Vishesh\"],\n\t\"mobile_nums\": [\"+918989898989\"],\n\t\"favourite_colour\": \"purple\"\n}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/vyakti/by_vyakti_id/{{testvyakti_id}}",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"vyakti",
+						"by_vyakti_id",
+						"{{testvyakti_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deletevyakti",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5e086545-879e-4bc9-b6bc-299669b8595c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"pm.test(\"Vyakti \"+pm.environment.get(\"testvyakti_id\")+\" deleted\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"vyakti_id\": \"testvyakti\",\n\t\"naam\": [\"Test Vyakti\"],\n\t\"mobile_nums\": [\"+918989898989\"]\n}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/vyakti/by_vyakti_id/{{testvyakti_id}}",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"vyakti",
+						"by_vyakti_id",
+						"{{testvyakti_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "updatevyaktineg",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5e086545-879e-4bc9-b6bc-299669b8595c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"",
+							"if(jsonData.status===\"success\"){",
+							"    ",
+							"pm.environment.set(\"testvyakti_id\", jsonData.resp[0].vyakti_id);",
+							"}",
+							"else{",
+							"    pm.environment.set(\"testvyakti_id\", \"<None>\");    ",
+							"}",
+							"pm.test(\"Vyaktis \"+ pm.environment.get(\"testvyakti_id\") +\"doesn't exist and can't be deleted\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"error\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"vyakti_id\": \"testvyakti\",\n\t\"naam\": [\"Test Vyakti\", \"Test Vyakti Vishesh\"],\n\t\"mobile_nums\": [\"+918989898989\"],\n\t\"favourite_colour\": \"purple\"\n}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/vyakti/by_vyakti_id/{{testvyakti_id}}",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"vyakti",
+						"by_vyakti_id",
+						"{{testvyakti_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createabhivyakti",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5e086545-879e-4bc9-b6bc-299669b8595c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"",
+							"if(jsonData.status===\"success\"){",
+							"    ",
+							"pm.environment.set(\"testabhivyakti_id\", jsonData.resp[0]._id.$oid);",
+							"}",
+							"else{",
+							"    pm.environment.set(\"testabhivyakti_id\", \"<None>\");    ",
+							"}",
+							"pm.test(\"AbhiVyakti \"+ pm.environment.get(\"testabhivyakti_id\") +\" created successfully\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"naam\": [\"Test Vyakti\"],\n\t\"mobile_num\": \"+918989898989\"\n}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/abhivyakti",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"abhivyakti"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteabhivyakti",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5e086545-879e-4bc9-b6bc-299669b8595c",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"var schema = {",
+							"    \"type\" : \"object\",",
+							"    \"properties\": {",
+							"        \"resp\" : {",
+							"            \"type\" : [\"array\", \"string\"]",
+							"        },",
+							"        \"status\": { ",
+							"            \"type\": \"string\"",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test('Response schema is valid', function() {",
+							"    pm.expect(tv4.validate(jsonData, schema)).to.be.true;",
+							" ",
+							"});  ",
+							"pm.test(\"AbhiVyakti \"+pm.environment.get(\"testabhivyakti_id\")+\" deleted\", function () {",
+							"",
+							"    pm.expect(jsonData.status).to.eql(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"vyakti_id\": \"testvyakti\",\n\t\"naam\": [\"Test Vyakti\"],\n\t\"mobile_nums\": [\"+918989898989\"]\n}"
+				},
+				"url": {
+					"raw": "192.168.56.101:5000/abhivyakti/by_id/{{testabhivyakti_id}}",
+					"host": [
+						"192",
+						"168",
+						"56",
+						"101"
+					],
+					"port": "5000",
+					"path": [
+						"abhivyakti",
+						"by_id",
+						"{{testabhivyakti_id}}"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

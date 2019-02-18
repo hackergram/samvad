@@ -181,7 +181,7 @@ class AbhiVyaktiResource(Resource):
         if command is None:
             try:
                 resp = xpal.create_abhivyakti(respdict)
-                if type(resp) != list:
+                if type(resp) == str:
                     status = "error"
                 else:
                     resp = [resp]
