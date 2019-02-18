@@ -40,7 +40,7 @@ def validate_dict(dictionary, required_keys=[], string_keys=[], mobile_nums=[], 
             if dictionary[key] == "":
                 validation['message'] = "Empty mobile number"
                 validation['status'] = False
-            if len(dictionary[key]) > 12:
+            if len(dictionary[key]) > 15:
                 validation['message'] = "{} too long a mobile number".format(dictionary[key])
                 validation['status'] = False
             if notnum.search(dictionary[key]):

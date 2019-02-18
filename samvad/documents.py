@@ -76,6 +76,7 @@ class Sandesh(SamvadBase, DynamicDocument):
     sandesh = fields.StringField()
     sender = fields.StringField()
     frm = fields.ReferenceField(AbhiVyakti)
+    samvads = fields.ListField()
 
 
 class Samvad(SamvadBase, DynamicDocument):

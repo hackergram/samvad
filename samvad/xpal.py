@@ -42,9 +42,9 @@ def validate_abhivyakti_dict(vyaktidict, new=True, logger=baselogger):
     validation['status'] = True
     validation['message'] = "Valid abhivyakti"
     required_keys = []
-    if new is True:
-        required_keys = ["vyakti_id"]
-    string_keys = ["mobile_num"]
+    # if new is True:
+    #    required_keys = ["vyakti_id"]
+    # string_keys = ["mobile_num"]
     mobile_nums = ["mobile_num"]
     validation = utils.validate_dict(
         vyaktidict, required_keys=required_keys, string_keys=string_keys, mobile_nums=mobile_nums)
@@ -83,6 +83,34 @@ def create_vyakti(vyaktidict, logger=baselogger):
         except Exception as e:
             logger.error("{} {}".format(type(e), str(e)))
             return "{} {}".format(type(e), str(e))
+    else:
+        errmsg = validate_vyakti_dict(vyaktidict, new=False)['message']
+        logger.error("{}".format(errmsg))
+        return "error:" + errmsg
+
+
+def update_vyakti(vyakti_id, vyaktidict, logger=baselogger):
+    vyakti = documents.Vyakti.objects(vyakti_id=vyakti_id)
+    if "vyakti_id" in vyaktidict.keys():
+        vyaktidict.pop(vyakti_id)
+    if len(vyakti):
+        vyakti = vyakti[0]
+        if validate_vyakti_dict(vyaktidict, new=False)['status']:
+            try:
+                vyakti.update(**vyaktidict)
+                vyakti.save()
+                vyakti.reload()
+                return vyakti
+            except Exception as e:
+                logger.error("{} {}".format(type(e), str(e)))
+                return "error: {} {}".format(type(e), str(e))
+        else:
+            errmsg = validate_vyakti_dict(vyaktidict, new=False)['message']
+            logger.error("{}".format(errmsg))
+            return "error:" + errmsg
+    else:
+        logger.error("No vyakti by id {}".format(vyakti))
+        return "error: No vyakti by id {}".format(vyakti)
 
 
 def sighted_vyakti(vyakti, logger=baselogger):
@@ -93,21 +121,38 @@ def sighted_vyakti(vyakti, logger=baselogger):
 
 def create_abhivyakti(abhivyaktidict, logger=baselogger):
     if validate_abhivyakti_dict(abhivyaktidict)['status']:
-        vyakti = documents.Vyakti.objects(vyakti_id=abhivyaktidict['vyakti_id'])
-        if len(vyakti) > 0:
-            vyakti = vyakti[0]
-            abhivyaktidict.pop("vyakti_id")
-        else:
-            logger.error("No such Vyakti")
-            return "No such Vyakti"
         try:
-            abhivyakti = documents.AbhiVyakti(vyakti, **abhivyaktidict)
+            abhivyakti = documents.AbhiVyakti(**abhivyaktidict)
             abhivyakti.save()
-            logger.info("{} created for {}".format(abhivyakti, vyakti))
+            logger.info("AbhiVyakti created {}".format(abhivyakti))
             return abhivyakti
         except Exception as e:
             logger.error("{} {}".format(type(e), str(e)))
             return "{} {}".format(type(e), str(e))
+
+
+def update_abhivyakti(abhivyakti_id, abhivyaktidict, logger=baselogger):
+    abhivyakti = documents.Vyakti.objects.with_id(abhivyakti_id)
+    if "abhivyakti_id" in abhivyaktidict.keys():
+        abhivyaktidict.pop(abhivyakti_id)
+    if len(abhivyakti):
+        abhivyakti = abhivyakti[0]
+        if validate_abhivyakti_dict(abhivyaktidict, new=False)['status']:
+            try:
+                abhivyakti.update(**abhivyaktidict)
+                abhivyakti.save()
+                abhivyakti.reload()
+                return abhivyakti
+            except Exception as e:
+                logger.error("{} {}".format(type(e), str(e)))
+                return "error: {} {}".format(type(e), str(e))
+        else:
+            errmsg = validate_abhivyakti_dict(abhivyaktidict, new=False)['message']
+            logger.error("{}".format(errmsg))
+            return "error:" + errmsg
+    else:
+        logger.error("No vyakti by id {}".format(abhivyakti))
+        return "error: No vyakti by id {}".format(abhivyakti)
 
 
 def create_sandesh(sandeshdict, logger=baselogger):
@@ -143,7 +188,8 @@ def search_sandesh(search_keys, logger=baselogger):
             samvad_id = search_keys['samvad_id']
     if samvad_id is not None:
         logger.info("Getting sandeshes from samvad {}".format(samvad_id))
-        sandeshlist = documents.Sandesh.objects(id__in=[sandesh.id for sandesh in documents.Samvad.objects.with_id(samvad_id).sandesh])
+        # sandeshlist = documents.Sandesh.objects(id__in=[sandesh.id for sandesh in documents.Samvad.objects.with_id(samvad_id).sandesh])
+        sandeshlist = documents.Sandesh.objects(samvads=samvad_id)
     else:
         logger.info("Getting all sandeshes")
         sandeshlist = documents.Sandesh.objects
@@ -313,7 +359,7 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
         return str(e)
 
 
-def update_samvad(wabrowser, samvad, logger=baselogger):
+def update_samvad_sandesh(wabrowser, samvad, logger=baselogger):
     p = wa_get_conv_messages(wabrowser, samvad.naam, historical=False)
     messages = []
     for message in p:
@@ -322,11 +368,13 @@ def update_samvad(wabrowser, samvad, logger=baselogger):
             messages.append(m)
     for message in messages:
         if len(documents.Sandesh.objects(sender=message['sender'], sandesh="\n".join(message['content']))) == 0:
+            # Alter to use create_abhivyakti
             try:
                 message['sandesh'] = "\n".join(message['content'])
                 if validate_sandesh_dict(message)['status'] is True:
                     m = create_sandesh(message)
                     m.medium = "whatsapp"
+                    m.samvads.append(str(samvad.id))
                     m.save()
                     logger.info("Created sandesh {}".format(m))
                     a = documents.AbhiVyakti(type=m.medium)
