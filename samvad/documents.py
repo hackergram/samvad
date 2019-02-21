@@ -79,6 +79,14 @@ class Sandesh(SamvadBase, DynamicDocument):
     frm = fields.ReferenceField(AbhiVyakti)
     samvads = fields.ListField()
 
+    def dump_dict(self):
+        data = self.to_mongo()
+        data['created_timestamp'] = self.created_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        data['updated_timestamp'] = self.updated_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        data.pop("_id")
+        data.pop("frm")
+        return bson.json_util.dumps(data)
+
 
 class Samvad(SamvadBase, DynamicDocument):
     sandesh = fields.SortedListField(fields.ReferenceField(Sandesh))
