@@ -335,7 +335,6 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
         wabrowser.execute_script("arguments[0].scrollIntoView(true)", line)
         linebs = BeautifulSoup(line.get_property("innerHTML"))
         message = linebs.find_all("div", {"class": "message-in"})
-        print message
         # TODO: Replace with Whatsapp Classmap in Xetrapal
         if len(message):
             msg = linebs.find("div", {"class": "copyable-text"})
@@ -354,18 +353,15 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
                 except Exception as e:
                     logger.error("Could not get display name and sender")
                 images = message[0].find_all("img")
-                print images
                 if len(images):
                     image = line.find_element_by_tag_name("img")
                     if "blob" in image.get_attribute("src"):
                         image.click()
                         karma.wait()
                         files = os.listdir(samvadxpal.sessiondownloadpath)
-                        # print files
                         wabrowser.find_element_by_xpath("//div[@title='Download']").click()
                         karma.wait(waittime="long")
                         newfiles = os.listdir(samvadxpal.sessiondownloadpath)
-                        # print newfiles
                         logger.info("Downloaded file {}".format(list(set(newfiles)-set(files))[0]))
                         msgdict['file'] = os.path.join(samvadxpal.sessiondownloadpath, list(set(newfiles)-set(files))[0])
                         karma.wait()
@@ -423,7 +419,6 @@ def update_samvad_sandesh(wabrowser, samvad, logger=baselogger):
                             m.frm = ab
                             m.save()
                         else:
-                            print "AbhiVyakti Exists"
                             logger.info("AbhiVyakti Exists")
                             m.frm = a[0]
                             m.save()

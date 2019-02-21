@@ -1,0 +1,8 @@
+Flask==1.0.2
+pymongo==3.5.1
+Flask_RESTful==0.3.7
+Flask_Cors==3.0.4
+mongoengine==0.16.3
+flask_mongoengine==0.9.5
+boto==2.49.0
+beautifulsoup4==4.7.1
