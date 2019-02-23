@@ -5,10 +5,12 @@ Created on Sat Jan  12 21:52:07 2019
 """
 import os
 import mongoengine
+import json
 from xetrapal import Xetrapal, whatsappkarmas, karma
-from samvad import documents, utils
+from samvad import documents, utils, samvadgraphmodel
 import datetime
 from bs4 import BeautifulSoup
+from copy import deepcopy
 
 samvadxpal = Xetrapal(configfile="/opt/samvad-appdata/samvadxpal.conf")
 baselogger = samvadxpal.logger
@@ -16,6 +18,7 @@ baselogger = samvadxpal.logger
 samvadxpal.logger.info("Setting up MongoEngine")
 mongoengine.connect('samvad', alias='default')
 # samvadfb = samvadxpal.get_fb_browser()
+samvadgraphmodel.config.DATABASE_URL = 'bolt://neo4j:test123@localhost:7687'
 
 
 def validate_vyakti_dict(vyaktidict, new=True, logger=baselogger):
@@ -141,6 +144,52 @@ def create_abhivyakti(abhivyaktidict, logger=baselogger):
             return "{} {}".format(type(e), str(e))
 
 
+def create_abhivyakti_neo(logger=baselogger, **kwargs):
+    if validate_abhivyakti_dict(kwargs)['status']:
+        try:
+            if "platform" in kwargs.keys():
+                if kwargs['platform'] == "whatsapp":
+                    abhivyakti = samvadgraphmodel.WhatsappAbhiVyakti(payload=kwargs, **kwargs).save()
+            else:
+                abhivyakti = samvadgraphmodel.AbhiVyakti(payload=kwargs, **kwargs).save()
+            logger.info("AbhiVyakti created {}".format(abhivyakti))
+            return abhivyakti
+        except Exception as e:
+            logger.error("{} {}".format(type(e), str(e)))
+            return "{} {}".format(type(e), str(e))
+
+
+def search_abhivyakti(logger=baselogger, **kwargs):
+    platformclass = "AbhiVyakti"
+    if "platform" in kwargs.keys():
+        if kwargs['platform'] == "whatsapp":
+            platformclass = "WhatsappAbhiVyakti"
+    query = "MATCH (p:{}) ".format(platformclass)
+    if kwargs != {}:
+        for key, value in kwargs.items():
+            if "WHERE" in query:
+                if key == "naam":
+                    query += " AND '{}' IN p.{}".format(value, key)
+                else:
+                    query += " AND p.{} = '{}'".format(key, value)
+            else:
+                if key == "naam":
+                    query += "WHERE '{}' IN p.{}".format(value, key)
+                else:
+                    query += "WHERE p.{}='{}'".format(key, value)
+    query += " RETURN p"
+    logger.info("Running AbhiVyakti Search with query "+query)
+    try:
+        results, meta = samvadgraphmodel.db.cypher_query(query)
+        if "platform" in kwargs.keys():
+            if kwargs['platform'] == "whatsapp":
+                return [samvadgraphmodel.WhatsappAbhiVyakti.inflate(row[0]) for row in results]
+        return [samvadgraphmodel.AbhiVyakti.inflate(row[0]) for row in results]
+    except Exception as e:
+        logger.error("Error {} {} running query".format(type(e), str(e)))
+        return []
+
+
 def delete_abhivyakti(abhivyakti_id, logger=baselogger):
     d = [documents.AbhiVyakti.objects.with_id(abhivyakti_id)]
     if len(d):
@@ -180,6 +229,23 @@ def create_sandesh(sandeshdict, logger=baselogger):
             sandesh = documents.Sandesh(**sandeshdict)
             sandesh.save()
             logger.info("{} created".format(sandesh))
+            return sandesh
+        except Exception as e:
+            logger.error("{} {}".format(type(e), str(e)))
+            return "{} {}".format(type(e), str(e))
+
+
+def create_sandesh_neo(logger=baselogger, **sandeshdict):
+    if validate_sandesh_dict(sandeshdict)['status']:
+        try:
+            sandesh = samvadgraphmodel.Sandesh(**sandeshdict).save()
+            payload = {}
+            for key in sandeshdict.keys():
+                if type(sandeshdict[key]) != datetime.datetime:
+                    payload[key] = sandeshdict[key]
+            sandesh.payload = payload
+            sandesh.save()
+            logger.info("{} Node created".format(sandesh))
             return sandesh
         except Exception as e:
             logger.error("{} {}".format(type(e), str(e)))
@@ -276,7 +342,7 @@ def fb_get_profile_data(fbbrowser, url, logger=baselogger):
     return profiledata
 
 
-def fb_get_profile_tab_data(fbbrowser, profileurl):
+def fb_get_profile_tab_data(fbbrowser, profileurl, logger=baselogger):
     tabdata = {"friends": {}, "photos": {}, "about": {}}
     fbbrowser.get(profileurl)
     karma.wait()
@@ -296,18 +362,18 @@ def fb_get_profile_tab_data(fbbrowser, profileurl):
     return tabdata
 
 
-def fb_get_cur_page_displayname(fbbrowser):
+def fb_get_cur_page_displayname(fbbrowser, logger=baselogger):
     displayname = fbbrowser.find_element_by_id("fb-timeline-cover-name").find_element_by_tag_name("a").text
     return displayname
 
 
-def fb_like_page_toggle(fbbrowser, pageurl):
+def fb_like_page_toggle(fbbrowser, pageurl, logger=baselogger):
     fbbrowser.get(pageurl)
     likebutton = fbbrowser.find_element_by_xpath("//button[@data-testid='page_profile_like_button_test_id']")
     likebutton.click()
 
 
-def wa_get_conv_messages(wabrowser, text, historical=True):
+def wa_get_conv_messages(wabrowser, text, historical=True, logger=baselogger):
     lines = []
     whatsappkarmas.select_conv(wabrowser, text)
     karma.wait()
@@ -329,7 +395,7 @@ def wa_get_conv_messages(wabrowser, text, historical=True):
     return lines
 
 
-def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
+def wa_get_message(wabrowser, line, logger=baselogger):
     msgdict = {}
     try:
         wabrowser.execute_script("arguments[0].scrollIntoView(true)", line)
@@ -374,7 +440,7 @@ def wa_get_message(wabrowser, line, logger=samvadxpal.logger):
         return str(e)
 
 
-def update_samvad_sandesh(wabrowser, samvad, logger=baselogger):
+def wa_update_samvad_sandesh(wabrowser, samvad, logger=baselogger):
     p = wa_get_conv_messages(wabrowser, samvad.naam, historical=False)
     messages = []
     for message in p:
@@ -388,7 +454,7 @@ def update_samvad_sandesh(wabrowser, samvad, logger=baselogger):
                 message['sandesh'] = "\n".join(message['content'])
                 if validate_sandesh_dict(message)['status'] is True:
                     m = create_sandesh(message)
-                    m.medium = "whatsapp"
+                    m.platform = "whatsapp"
                     m.samvads.append(str(samvad.id))
                     m.save()
                     logger.info("Created sandesh {}".format(m))
@@ -431,3 +497,39 @@ def update_samvad_sandesh(wabrowser, samvad, logger=baselogger):
                 logger.error("{} {}".format(type(e), str(e)))
         else:
             logger.error("{} is a duplicate of a previous sandesh".format(message))
+
+
+def create_sandesh_graph(logger=baselogger):
+    for sandesh in documents.Sandesh.objects:
+        sandeshdict = json.loads(sandesh.dump_dict())
+        samvadlist = []
+        for samvad in sandeshdict['samvads']:
+            samvadlist.append(documents.Samvad.objects.with_id(samvad).naam)
+        sandeshdict['samvads'] = samvadlist
+        sandeshdict['created_timestamp'] = datetime.datetime.strptime(sandeshdict['created_timestamp'], "%Y-%m-%d %H:%M:%S")
+        sandeshdict['updated_timestamp'] = datetime.datetime.strptime(sandeshdict['updated_timestamp'], "%Y-%m-%d %H:%M:%S")
+        print(sandeshdict.keys())
+        newsandesh = create_sandesh_neo(**sandeshdict)
+        searchdict = {}
+        searchdict['platform'] = newsandesh.platform
+        if utils.engalpha.search(newsandesh.sender):
+            logger.info("Whatsapp Contact: {}".format(sandesh.sender))
+            searchdict['whatsapp_contact'] = sandesh.sender
+        else:
+            logger.info("Mobile Num: {}".format(sandesh.sender))
+            searchdict['mobile_num'] = sandesh.sender
+        if searchdict == {}:
+            return sandesh
+        try:
+            abhivyakti = search_abhivyakti(**searchdict)
+            if len(abhivyakti) > 0:
+                logger.info("Found abhivyakti, linking")
+                newsandesh.frm.connect(abhivyakti[0])
+            else:
+                logger.info("Creating abhivyakti, linking")
+                newabhivyakti = create_abhivyakti_neo(**searchdict)
+                # newabhivyakti = samvadgraphmodel.AbhiVyakti(**searchdict).save()
+                newsandesh.frm.connect(newabhivyakti)
+            newsandesh.save()
+        except Exception as e:
+            logger.error("Error {} {} trying to create AbhiVyakti".format(type(e), str(e)))

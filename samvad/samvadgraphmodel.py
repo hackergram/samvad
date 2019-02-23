@@ -4,14 +4,13 @@ Created on 2019-01-09
 
 @author: arjunvenkatraman
 """
-from neomodel import (config, StructuredNode, StringProperty, ArrayProperty, IntegerProperty, UniqueIdProperty, RelationshipTo, RelationshipFrom, DateTimeProperty)
+from neomodel import (config, JSONProperty, StructuredNode, StringProperty, ArrayProperty, RelationshipTo, RelationshipFrom, DateTimeProperty, db)
 
 # from mongoengine import Document, fields, DynamicDocument
 import datetime
 # from flask_mongoengine import QuerySet
 # from samvad import utils
 # import json
-import bson
 
 '''
 class PPrintMixin(object):
@@ -60,8 +59,14 @@ class AbhiVyakti(SamvadBase):
     sent = RelationshipTo("Sandesh", "SENT")
     lastinteracted_timestamp = DateTimeProperty()
     naam = ArrayProperty()
-    type = StringProperty(default="abhivyakti")
+    platform = StringProperty(default="abhivyakti")
+    payload = JSONProperty()
+
+
+class WhatsappAbhiVyakti(AbhiVyakti):
     mobile_num = StringProperty()
+    whatsapp_contact = StringProperty()
+    platform = StringProperty(default="whatsapp")
 
 
 class Vyakti(SamvadBase):
@@ -80,6 +85,7 @@ class Sandesh(SamvadBase):
     sender = StringProperty()
     frm = RelationshipFrom("AbhiVyakti", "SENT")
     samvads = RelationshipFrom("Samvad", "CONTAINS")
+    payload = JSONProperty()
 
 
 class Samvad(SamvadBase):

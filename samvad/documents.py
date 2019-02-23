@@ -84,7 +84,8 @@ class Sandesh(SamvadBase, DynamicDocument):
         data['created_timestamp'] = self.created_timestamp.strftime("%Y-%m-%d %H:%M:%S")
         data['updated_timestamp'] = self.updated_timestamp.strftime("%Y-%m-%d %H:%M:%S")
         data.pop("_id")
-        data.pop("frm")
+        if "frm" in data.keys():
+            data.pop("frm")
         return bson.json_util.dumps(data)
 
 
