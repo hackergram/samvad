@@ -159,22 +159,25 @@ def create_abhivyakti(logger=baselogger, **kwargs):
 
 def search_abhivyakti(logger=baselogger, **kwargs):
     platformclass = "AbhiVyakti"
+    keylist = samvadgraphmodel.AbhiVyakti.defined_properties()
     if "platform" in kwargs.keys():
         if kwargs['platform'] == "whatsapp":
+            keylist = samvadgraphmodel.WhatsappAbhiVyakti.defined_properties()
             platformclass = "WhatsappAbhiVyakti"
     query = "MATCH (p:{}) ".format(platformclass)
     if kwargs != {}:
         for key, value in kwargs.items():
-            if "WHERE" in query:
-                if key == "naam":
-                    query += " AND '{}' IN p.{}".format(value, key)
+            if key in keylist:
+                if "WHERE" in query:
+                    if key == "naam":
+                        query += " AND '{}' IN p.{}".format(value, key)
+                    else:
+                        query += " AND p.{} = '{}'".format(key, value)
                 else:
-                    query += " AND p.{} = '{}'".format(key, value)
-            else:
-                if key == "naam":
-                    query += "WHERE '{}' IN p.{}".format(value, key)
-                else:
-                    query += "WHERE p.{}='{}'".format(key, value)
+                    if key == "naam":
+                        query += "WHERE '{}' IN p.{}".format(value, key)
+                    else:
+                        query += "WHERE p.{}='{}'".format(key, value)
     query += " RETURN p"
     logger.info("Running AbhiVyakti Search with query "+query)
     try:
@@ -219,6 +222,17 @@ def update_abhivyakti(abhivyakti_id, abhivyaktidict, logger=baselogger):
     else:
         logger.error("No vyakti by id {}".format(abhivyakti_id))
         return "error: No vyakti by id {}".format(abhivyakti_id)
+
+
+def create_samvad(logger=baselogger, **samvadict):
+    try:
+        samvad = samvadgraphmodel.Samvad(**samvadict).save()
+        samvad.payload = samvadict
+        samvad.save()
+        return samvad
+    except Exception as e:
+        logger.error("{} {}".format(type(e), str(e)))
+        return "{} {}".format(type(e), str(e))
 
 
 def create_sandesh(logger=baselogger, **sandeshdict):
@@ -419,7 +433,7 @@ def wa_get_message(wabrowser, line, logger=baselogger):
                 msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y"))
                 msgdict['sender'] = {"platform": "whatsapp"}
                 if not utils.engalpha.search(msgsender):
-                    msgdict['sender']['mobile_num'] = msgsender.replace(": ", "")
+                    msgdict['sender']['mobile_num'] = msgsender.replace(": ", "").replace(" ", "")
                     logger.info("Mobile Num: {}".format(msgdict['sender']))
                 else:
                     msgdict['sender']['whatsapp_contact'] = msgsender.replace(": ", "")
@@ -456,8 +470,9 @@ def wa_get_message(wabrowser, line, logger=baselogger):
         return "{} {}".format(type(e), str(e))
 
 
-def wa_update_samvad_sandesh(wabrowser, text, historical=False, logger=baselogger):
-    p = wa_get_conv_messages(wabrowser, text, historical=historical)
+def wa_update_samvad_sandesh(wabrowser, samvad, historical=False, logger=baselogger):
+    logger.info("Searching for messages in samvad {}".format(samvad.naam))
+    p = wa_get_conv_messages(wabrowser, samvad.naam, historical=historical)
     messages = []
     seen_messages = []
     # return messages
@@ -467,10 +482,10 @@ def wa_update_samvad_sandesh(wabrowser, text, historical=False, logger=baselogge
             messages.append(m)
     for sandesh in messages:
         q = create_sandesh(**sandesh)
+        q.samvads.connect(samvad)
+        q.save()
         seen_messages.append(q)
     return seen_messages
-
-def create_samvad(logger=baselogger, **samvadict):
 
 
 def create_sandesh_graph(logger=baselogger):
