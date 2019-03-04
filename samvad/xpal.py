@@ -10,7 +10,7 @@ from xetrapal import Xetrapal, whatsappkarmas, karma
 from samvad import documents, utils, samvadgraphmodel
 import datetime
 from bs4 import BeautifulSoup
-
+import pytz
 
 class TZ(datetime.tzinfo):
     def utcoffset(self, dt): return datetime.timedelta(minutes=0)
@@ -244,37 +244,40 @@ def create_sandesh(logger=baselogger, **sandeshdict):
         else:
             abhivyakti = abhivyakti[0]
         sandesh = search_sandesh(**sandeshdict)
-        if sandesh == []:
-            try:
-                sandesh = samvadgraphmodel.Sandesh(**sandeshdict).save()
-                payload = {}
-                for key in sandeshdict.keys():
-                    if type(sandeshdict[key]) != datetime.datetime:
-                        payload[key] = sandeshdict[key]
-                sandesh.payload = payload
-                if "text_lines" in sandeshdict.keys():
-                    sandesh.text = "\n".join(sandeshdict['text_lines'])
-                    sandesh.text = sandesh.text.replace("'", "")
-                sandesh.frm.connect(abhivyakti)
-                sandesh.save()
-                logger.info("{} Node created".format(sandesh))
-                return sandesh
-            except Exception as e:
-                logger.error("{} {}".format(type(e), str(e)))
-                return "{} {}".format(type(e), str(e))
-        else:
-            logger.error("Duplicate message of {}".format(sandesh[0]))
-            return sandesh[0]
+        if sandesh != []:
+            if sandesh[0].created_timestamp == sandeshdict['created_timestamp'].replace(tzinfo=pytz.UTC):
+                logger.error("Duplicate message of {}".format(sandesh[0]))
+                return sandesh[0]
+        try:
+            sandesh = samvadgraphmodel.Sandesh(**sandeshdict).save()
+            payload = {}
+            for key in sandeshdict.keys():
+                if type(sandeshdict[key]) != datetime.datetime:
+                    payload[key] = sandeshdict[key]
+            sandesh.payload = payload
+            if "text_lines" in sandeshdict.keys():
+                sandesh.text = "\n".join(sandeshdict['text_lines'])
+                sandesh.text = sandesh.text.replace("'", "")
+            sandesh.frm.connect(abhivyakti)
+            sandesh.save()
+            logger.info("{} Node created".format(sandesh))
+            return sandesh
+        except Exception as e:
+            logger.error("{} {}".format(type(e), str(e)))
+            return "{} {}".format(type(e), str(e))
 
 
 def search_sandesh(logger=baselogger, **kwargs):
     platformclass = "Sandesh"
+    logger.info(kwargs)
     searchkeys = {}
     for key in kwargs.keys():
         if type(kwargs[key]) == str:
             searchkeys[key] = "'{}'".format(kwargs[key].replace("'", ""))
-        if type(kwargs[key]) == datetime.datetime:
-            searchkeys[key] = "{}".format(kwargs[key].replace(tzinfo=TZ()).timestamp())
+        # if type(kwargs[key]) == datetime.datetime:
+            # searchkeys[key] = "{}".format(kwargs[key].replace(tzinfo=TZ()).timestamp())
+            # searchkeys[key] = "{}".format(kwargs[key].timestamp())
+
         if key == "text_lines":
             searchkeys['text'] = "'{}'".format("\n".join(kwargs['text_lines']).replace("'", ""))
     query1 = "MATCH (p:{}) ".format(platformclass)
@@ -422,7 +425,9 @@ def wa_get_message(wabrowser, line, logger=baselogger):
     try:
         wabrowser.execute_script("arguments[0].scrollIntoView(true)", line)
         linebs = BeautifulSoup(line.get_property("innerHTML"), features="html.parser")
-        message = linebs.find_all("div", {"class": "message-in"})
+        messages_in = linebs.find_all("div", {"class": "message-in"})
+        messages_out = linebs.find_all("div", {"class": "message-out"})
+        message = messages_in+messages_out
         # TODO: Replace with Whatsapp Classmap in Xetrapal
         if len(message):
             msg = linebs.find("div", {"class": "copyable-text"})
