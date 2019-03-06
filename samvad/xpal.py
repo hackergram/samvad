@@ -435,7 +435,10 @@ def wa_get_message(wabrowser, line, logger=baselogger):
             if msg:
                 msgts = msg.get("data-pre-plain-text").split("] ")[0].replace("[", "").replace("]", "")
                 msgsender = msg.get("data-pre-plain-text").split("] ")[1]
-                msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y"))
+                if "m" in msgts:
+                    msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y"))
+                else:
+                    msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M, %m/%d/%Y"))
                 msgdict['sender'] = {"platform": "whatsapp"}
                 if not utils.engalpha.search(msgsender):
                     msgdict['sender']['mobile_num'] = msgsender.replace(": ", "").replace(" ", "")
