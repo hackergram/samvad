@@ -3,14 +3,15 @@ Created on Sat Jan  12 21:52:07 2019
 
 @author: arjunvenkatraman
 """
-import os
+# import os
 import mongoengine
 import json
-from xetrapal import Xetrapal, whatsappkarmas, karma
+from xetrapal import Xetrapal, wakarmas, karma
 from samvad import documents, utils, samvadgraphmodel
 import datetime
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 import pytz
+
 
 class TZ(datetime.tzinfo):
     def utcoffset(self, dt): return datetime.timedelta(minutes=0)
@@ -398,94 +399,14 @@ def fb_like_page_toggle(fbbrowser, pageurl, logger=baselogger):
     likebutton.click()
 
 
-def wa_get_conv_messages(wabrowser, text, historical=True, scrolls=2, logger=baselogger):
-    lines = []
-    whatsappkarmas.select_conv(wabrowser, text)
-    karma.wait()
-    pane2 = wabrowser.find_element_by_class_name("_2nmDZ")
-    count = 0
-    while True:
-        numlines = len(lines)
-        wabrowser.execute_script("arguments[0].scrollTo(0,0)", pane2)
-        lines = wabrowser.find_elements_by_class_name("vW7d1")
-        # TODO: Replace with Whatsapp Classmap in Xetrapal
-        karma.wait(waittime="long")
-        newnumlines = len(lines)
-        if historical is not True:
-            if count == scrolls:
-                break
-        if newnumlines == numlines:
-            break
-        count += 1
-    return lines
-
-
-def wa_get_message(wabrowser, line, logger=baselogger):
-    msgdict = {}
-    try:
-        wabrowser.execute_script("arguments[0].scrollIntoView(true)", line)
-        linebs = BeautifulSoup(line.get_property("innerHTML"), features="html.parser")
-        messages_in = linebs.find_all("div", {"class": "message-in"})
-        messages_out = linebs.find_all("div", {"class": "message-out"})
-        message = messages_in+messages_out
-        # TODO: Replace with Whatsapp Classmap in Xetrapal
-        if len(message):
-            msg = linebs.find("div", {"class": "copyable-text"})
-            logger.info(msg)
-            if msg:
-                msgts = msg.get("data-pre-plain-text").split("] ")[0].replace("[", "").replace("]", "")
-                msgsender = msg.get("data-pre-plain-text").split("] ")[1]
-                if "m" in msgts:
-                    msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M %p, %m/%d/%Y"))
-                else:
-                    msgdict["created_timestamp"] = utils.get_utc_ts(datetime.datetime.strptime(msgts, "%H:%M, %m/%d/%Y"))
-                msgdict['sender'] = {"platform": "whatsapp"}
-                if not utils.engalpha.search(msgsender):
-                    msgdict['sender']['mobile_num'] = msgsender.replace(": ", "").replace(" ", "")
-                    logger.info("Mobile Num: {}".format(msgdict['sender']))
-                else:
-                    msgdict['sender']['whatsapp_contact'] = msgsender.replace(": ", "")
-                    logger.info("Whatsapp Contact: {}".format(msgdict['sender']))
-                msgdict['text_lines'] = [x.replace("'", "") for x in msg.strings]
-                try:
-                    msgdict['sender']['displayed_sender'] = linebs.find("span", {"class": "RZ7GO"}).text
-                    msgdict['displayed_sender_name'] = linebs.find("span", {"class": "_3Ye_R"}).text
-                except Exception as e:
-                    logger.error("Could not get display name and sender")
-                images = message[0].find_all("img")
-                if len(images):
-                    image = line.find_element_by_tag_name("img")
-                    if "blob" in image.get_attribute("src"):
-                        image.click()
-                        karma.wait()
-                        files = os.listdir(samvadxpal.sessiondownloadpath)
-                        wabrowser.find_element_by_xpath("//div[@title='Download']").click()
-                        karma.wait(waittime="long")
-                        newfiles = os.listdir(samvadxpal.sessiondownloadpath)
-                        logger.info("Downloaded file {}".format(list(set(newfiles)-set(files))[0]))
-                        msgdict['file'] = os.path.join(samvadxpal.sessiondownloadpath, list(set(newfiles)-set(files))[0])
-                        karma.wait()
-                        wabrowser.find_element_by_xpath("//div[@title='Close']").click()
-                        karma.wait()
-            if msgdict != {}:
-                msgdict['platform'] = "whatsapp"
-                logger.info(msgdict)
-                return msgdict
-        else:
-            return "No message in line"
-    except Exception as e:
-        logger.error("{} {}".format(type(e), str(e)))
-        return "{} {}".format(type(e), str(e))
-
-
 def wa_update_samvad_sandesh(wabrowser, samvad, historical=False, logger=baselogger):
     logger.info("Searching for messages in samvad {}".format(samvad.naam))
-    p = wa_get_conv_messages(wabrowser, samvad.naam, historical=historical)
+    p = wakarmas.wa_get_conv_messages(wabrowser, samvad.naam, historical=historical)
     messages = []
     seen_messages = []
     # return messages
     for message in p:
-        m = wa_get_message(wabrowser, message)
+        m = wakarmas.wa_get_message(wabrowser, message)
         if type(m) == dict and m != {}:
             messages.append(m)
     for sandesh in messages:
