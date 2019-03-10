@@ -5,7 +5,7 @@ Created on Sat Sep 22 20:54:42 2018
 
 @author: arjun
 """
-from samvad.api import *
+from samvad.api import app
 
 if __name__ == '__main__':
-   app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0")
