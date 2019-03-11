@@ -4,8 +4,8 @@ Created on Sat Jan  12 21:52:07 2019
 @author: arjunvenkatraman
 """
 # import os
-import sys
-sys.path.append("/opt/xetrapal")
+# import sys
+# sys.path.append("/opt/xetrapal")
 from xetrapal import Xetrapal
 from samvad import samvadgraphmodel, xpalfuncs
 
