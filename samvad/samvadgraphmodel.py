@@ -18,6 +18,7 @@ class SamvadBase(StructuredNode):
     updated_timestamp = DateTimeProperty(default=datetime.datetime.utcnow)
     payload = JSONProperty(default={})
     platform = StringProperty(default="samvad")
+    # linked = Relationship
 
 
 class AbhiVyakti(SamvadBase):
