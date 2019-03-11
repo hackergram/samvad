@@ -42,6 +42,24 @@ def validate_vyakti_dict(vyaktidict, new=True, logger=baselogger, **kwargs):
     return validation
 
 
+def validate_samvad_dict(samvaddict, new=True, logger=baselogger, **kwargs):
+    validation = {}
+    validation['status'] = True
+    validation['message'] = "Valid vyakti"
+    required_keys = []
+    if new is True:
+        required_keys = ["naam"]
+    string_keys = []
+    mobile_nums = []
+    validation = utils.validate_dict(
+        samvaddict, required_keys=required_keys, string_keys=string_keys, mobile_nums=mobile_nums)
+    if validation['status'] is True:
+        logger.info("samvaddict: " + validation['message'])
+    else:
+        logger.error("samvaddict: " + validation['message'])
+    return validation
+
+
 def validate_abhivyakti_dict(vyaktidict, new=True, logger=baselogger, **kwargs):
     validation = {}
     validation['status'] = True
@@ -223,15 +241,24 @@ def update_abhivyakti(abhivyakti_id, abhivyaktidict, logger=baselogger):
         return "error: No vyakti by id {}".format(abhivyakti_id)
 
 
-def create_samvad(logger=baselogger, config=None, path=None, **samvadict):
-    try:
-        samvad = samvadgraphmodel.Samvad(**samvadict).save()
-        samvad.payload = samvadict
-        samvad.save()
-        return samvad
-    except Exception as e:
-        logger.error("{} {}".format(type(e), str(e)))
-        return "{} {}".format(type(e), str(e))
+def create_samvad(logger=baselogger, config=None, path=None, **samvaddict):
+    if validate_samvad_dict(samvaddict)['status']:
+        samvad = samvadgraphmodel.Samvad.nodes.filter(naam=samvaddict['naam'])
+        if len(samvad):
+            logger.error("error: Samvad with naam {} already exists".format(samvaddict['naam']))
+            return samvad[0]
+        try:
+            samvad = samvadgraphmodel.Samvad(**samvaddict).save()
+            samvad.payload = samvaddict
+            samvad.save()
+            return samvad
+        except Exception as e:
+            logger.error("{} {}".format(type(e), str(e)))
+            return "{} {}".format(type(e), str(e))
+    else:
+        errmsg = validate_samvad_dict(samvaddict)['message']
+        logger.error("error: {}".format(errmsg))
+        return "error: {}".format(errmsg)
 
 
 def create_sandesh(logger=baselogger, config=None, path=None, **sandeshdict):
